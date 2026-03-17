@@ -1,0 +1,91 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TagPill from '../../components/TagPill.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const formattedDate = post.data.pubDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const readingTime = Math.max(
+  1,
+  Math.ceil((post.body?.split(/\s+/).length || 0) / 200)
+);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.pubDate.toISOString(),
+  ...(post.data.updatedDate && {
+    dateModified: post.data.updatedDate.toISOString(),
+  }),
+  author: {
+    '@type': 'Organization',
+    name: 'Blossom Studios LLC',
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'Blossom Studios LLC',
+  },
+};
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  type="article"
+  jsonLd={jsonLd}
+  publishedDate={post.data.pubDate.toISOString()}
+  modifiedDate={post.data.updatedDate?.toISOString()}
+>
+  <article class="mx-auto max-w-[1120px] px-6 pt-16 pb-24">
+    <header class="max-w-2xl pt-12 pb-10 border-b border-border mb-10">
+      <div class="flex items-center gap-3 mb-4">
+        {post.data.tags.map((tag: string) => (
+          <TagPill tag={tag} href={`/blog/tags/${tag}/`} />
+        ))}
+      </div>
+
+      <h1 class="text-display text-ink">{post.data.title}</h1>
+
+      <div class="flex items-center gap-3 mt-4 text-small text-ink-faint">
+        <time datetime={post.data.pubDate.toISOString()}>{formattedDate}</time>
+        <span>&middot;</span>
+        <span>{readingTime} min read</span>
+        <span>&middot;</span>
+        <span>{post.data.author}</span>
+      </div>
+    </header>
+
+    <div class="prose max-w-2xl">
+      <Content />
+    </div>
+
+    <footer class="max-w-2xl mt-16 pt-8 border-t border-border">
+      <a
+        href="/blog/"
+        class="inline-flex items-center gap-1.5 text-small font-medium text-ink-muted hover:text-accent transition-colors duration-200"
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 4l-4 4 4 4" />
+        </svg>
+        Back to all posts
+      </a>
+    </footer>
+  </article>
+</BaseLayout>

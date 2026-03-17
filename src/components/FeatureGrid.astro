@@ -1,0 +1,25 @@
+---
+interface Feature {
+  title: string;
+  description: string;
+}
+
+interface Props {
+  features: Feature[];
+}
+
+const { features } = Astro.props;
+---
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {features.map((feature) => (
+    <div class="p-5 rounded-xl border border-border bg-surface-raised/50">
+      <h3 class="text-body font-semibold text-ink mb-1.5">
+        {feature.title}
+      </h3>
+      <p class="text-small text-ink-muted leading-relaxed">
+        {feature.description}
+      </p>
+    </div>
+  ))}
+</div>

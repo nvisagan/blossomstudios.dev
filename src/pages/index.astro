@@ -1,17 +1,139 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import BlogPostCard from '../components/BlogPostCard.astro';
+import { getCollection } from 'astro:content';
 
+const products = (await getCollection('products')).sort((a, b) => a.data.order - b.data.order);
+
+const posts = (await getCollection('blog'))
+  .filter((post) => !post.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Blossom Studios LLC',
+  url: 'https://blossomstudios.dev',
+  description: 'Indie studio building focused, well-crafted developer tools and browser extensions.',
+  sameAs: [
+    'https://github.com/blossomstudios',
+    'https://x.com/blossomstudios',
+  ],
+};
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout
+  title="Blossom Studios"
+  description="Indie studio building focused, well-crafted developer tools and browser extensions."
+  jsonLd={jsonLd}
+>
+  <!-- Hero -->
+  <section class="relative overflow-hidden">
+    <!-- Subtle background texture -->
+    <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 1px 1px, var(--color-ink) 1px, transparent 0); background-size: 24px 24px;"></div>
+
+    <div class="relative mx-auto max-w-[1120px] px-6 pt-28 pb-24 sm:pt-36 sm:pb-32">
+      <div class="max-w-2xl">
+        <div class="animate-in">
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-light text-accent text-caption font-medium mb-6">
+            <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
+            Shipping new tools
+          </span>
+        </div>
+
+        <h1 class="text-display text-ink animate-in delay-1">
+          Software that<br />
+          <span class="text-accent">does its job well.</span>
+        </h1>
+
+        <p class="text-body text-ink-muted mt-6 max-w-lg leading-relaxed animate-in delay-2">
+          Blossom Studios builds focused developer tools and browser extensions.
+          Small, fast, no nonsense.
+        </p>
+
+        <div class="flex items-center gap-4 mt-8 animate-in delay-3">
+          <a
+            href="#products"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-ink text-surface text-small font-medium hover:bg-ink/90 transition-colors duration-200"
+          >
+            See our products
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8h8m-4-4 4 4-4 4" />
+            </svg>
+          </a>
+          <a
+            href="/blog/"
+            class="inline-flex items-center px-5 py-2.5 rounded-xl text-small font-medium text-ink-muted hover:text-ink hover:bg-surface-raised transition-colors duration-200"
+          >
+            Read the blog
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products -->
+  <section id="products" class="mx-auto max-w-[1120px] px-6 pb-24">
+    <div class="flex items-end justify-between mb-8">
+      <div>
+        <h2 class="text-title text-ink">Products</h2>
+        <p class="text-small text-ink-muted mt-1">Tools we've built and shipped.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {products.map((product) => (
+        <ProductCard
+          name={product.data.name}
+          tagline={product.data.tagline}
+          slug={product.id}
+          platforms={product.data.platforms}
+        />
+      ))}
+    </div>
+  </section>
+
+  <!-- Blog Highlights -->
+  {posts.length > 0 && (
+    <section class="mx-auto max-w-[1120px] px-6 pb-24">
+      <div class="flex items-end justify-between mb-6">
+        <div>
+          <h2 class="text-title text-ink">Latest Posts</h2>
+          <p class="text-small text-ink-muted mt-1">Updates, changelogs, and articles.</p>
+        </div>
+        <a
+          href="/blog/"
+          class="text-small font-medium text-ink-muted hover:text-accent transition-colors duration-200"
+        >
+          View all &rarr;
+        </a>
+      </div>
+
+      <div class="divide-y divide-border">
+        {posts.map((post) => (
+          <BlogPostCard
+            title={post.data.title}
+            description={post.data.description}
+            pubDate={post.data.pubDate}
+            tags={post.data.tags}
+            slug={post.id}
+          />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- About -->
+  <section class="mx-auto max-w-[1120px] px-6 pb-24">
+    <div class="max-w-xl mx-auto text-center">
+      <h2 class="text-title text-ink mb-4">About</h2>
+      <p class="text-body text-ink-muted leading-relaxed">
+        Blossom Studios LLC is an indie studio focused on building small, sharp tools
+        for developers and designers. We ship software that does one thing well,
+        respects your resources, and gets out of your way.
+      </p>
+    </div>
+  </section>
+</BaseLayout>

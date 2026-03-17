@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://blossomstudios.dev/sitemap-index.xml

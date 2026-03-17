@@ -1,0 +1,62 @@
+---
+const pathname = Astro.url.pathname;
+
+const links = [
+  { href: '/products/favigrab/', label: 'Products' },
+  { href: '/blog/', label: 'Blog' },
+];
+---
+
+<header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg bg-surface/80 border-b border-border/50">
+  <nav class="mx-auto max-w-[1120px] px-6 h-16 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2.5 group">
+      <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="6" r="3" fill="white" opacity="0.9" />
+          <circle cx="5.5" cy="9" r="2.5" fill="white" opacity="0.7" />
+          <circle cx="10.5" cy="9" r="2.5" fill="white" opacity="0.7" />
+          <circle cx="8" cy="11.5" r="2" fill="white" opacity="0.5" />
+        </svg>
+      </div>
+      <span class="font-semibold text-[0.9375rem] tracking-tight text-ink">Blossom Studios</span>
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="hidden sm:flex items-center gap-1">
+      {links.map(({ href, label }) => (
+        <a
+          href={href}
+          class:list={[
+            'px-3.5 py-2 rounded-lg text-small font-medium transition-colors duration-200',
+            pathname.startsWith(href.split('/').slice(0, 2).join('/') + '/')
+              ? 'text-accent bg-accent-light'
+              : 'text-ink-muted hover:text-ink hover:bg-surface-raised',
+          ]}
+        >
+          {label}
+        </a>
+      ))}
+    </div>
+
+    <!-- Mobile nav toggle -->
+    <details class="sm:hidden relative">
+      <summary class="list-none cursor-pointer p-2 -mr-2 text-ink-muted hover:text-ink">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <line x1="3" y1="6" x2="17" y2="6" />
+          <line x1="3" y1="10" x2="17" y2="10" />
+          <line x1="3" y1="14" x2="17" y2="14" />
+        </svg>
+      </summary>
+      <div class="absolute right-0 top-full mt-2 w-44 bg-surface border border-border rounded-xl shadow-lg p-2">
+        {links.map(({ href, label }) => (
+          <a
+            href={href}
+            class="block px-3 py-2 rounded-lg text-small font-medium text-ink-muted hover:text-ink hover:bg-surface-raised transition-colors"
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+    </details>
+  </nav>
+</header>

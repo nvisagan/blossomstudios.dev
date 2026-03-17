@@ -1,0 +1,45 @@
+---
+import TagPill from './TagPill.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  tags: string[];
+  slug: string;
+}
+
+const { title, description, pubDate, tags, slug } = Astro.props;
+
+const formattedDate = pubDate.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+---
+
+<a href={`/blog/${slug}/`} class="group block py-5 -mx-3 px-3 rounded-xl hover:bg-surface-raised transition-colors duration-200">
+  <div class="flex items-start justify-between gap-4">
+    <div class="min-w-0">
+      <h3 class="text-body font-semibold text-ink group-hover:text-accent transition-colors duration-200 truncate">
+        {title}
+      </h3>
+      <p class="text-small text-ink-muted mt-1 line-clamp-2">
+        {description}
+      </p>
+      <div class="flex items-center gap-3 mt-2.5">
+        <time datetime={pubDate.toISOString()} class="text-caption text-ink-faint">
+          {formattedDate}
+        </time>
+        {tags.slice(0, 2).map((tag) => (
+          <TagPill tag={tag} />
+        ))}
+      </div>
+    </div>
+    <div class="shrink-0 mt-1 text-ink-faint group-hover:text-accent transition-colors duration-200 group-hover:translate-x-0.5">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 4l4 4-4 4" />
+      </svg>
+    </div>
+  </div>
+</a>

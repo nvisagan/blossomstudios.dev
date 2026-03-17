@@ -1,0 +1,163 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import FeatureGrid from '../../components/FeatureGrid.astro';
+import BlogPostCard from '../../components/BlogPostCard.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const products = await getCollection('products');
+  return products.map((product) => ({
+    params: { slug: product.id },
+    props: { product },
+  }));
+}
+
+const { product } = Astro.props;
+const { Content } = await render(product);
+
+const relatedPosts = (await getCollection('blog'))
+  .filter((post) => !post.data.draft && post.data.product === product.id)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3);
+
+const platformLabels: Record<string, string> = {
+  chrome: 'Chrome Extension',
+  firefox: 'Firefox Add-on',
+  web: 'Web App',
+  macos: 'macOS App',
+  ios: 'iOS App',
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: product.data.name,
+  description: product.data.description,
+  applicationCategory: 'BrowserApplication',
+  operatingSystem: product.data.platforms.join(', '),
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  ...(product.data.version && { softwareVersion: product.data.version }),
+  installUrl: product.data.installUrl,
+  author: {
+    '@type': 'Organization',
+    name: 'Blossom Studios LLC',
+  },
+};
+---
+
+<BaseLayout
+  title={product.data.name}
+  description={product.data.description}
+  jsonLd={jsonLd}
+>
+  <div class="mx-auto max-w-[1120px] px-6 pt-16 pb-24">
+    <!-- Product Header -->
+    <section class="pt-12 pb-16 border-b border-border">
+      <div class="max-w-2xl">
+        <div class="w-14 h-14 rounded-2xl bg-accent-light flex items-center justify-center mb-6">
+          <span class="text-2xl font-bold text-accent">{product.data.name[0]}</span>
+        </div>
+
+        <h1 class="text-display text-ink">{product.data.name}</h1>
+        <p class="text-body text-ink-muted mt-3 text-lg leading-relaxed">{product.data.tagline}</p>
+
+        <div class="flex flex-wrap items-center gap-3 mt-4">
+          {product.data.platforms.map((p: string) => (
+            <span class="inline-flex items-center gap-1.5 text-small text-ink-muted">
+              <span class="w-1.5 h-1.5 rounded-full bg-accent/50"></span>
+              {platformLabels[p] || p}
+            </span>
+          ))}
+          {product.data.version && (
+            <span class="text-small text-ink-faint">v{product.data.version}</span>
+          )}
+        </div>
+
+        <div class="flex items-center gap-3 mt-8">
+          <a
+            href={product.data.installUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white text-small font-semibold hover:bg-accent-hover transition-colors duration-200 shadow-sm"
+          >
+            Install Free
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8h8m-4-4 4 4-4 4" />
+            </svg>
+          </a>
+          {product.data.githubUrl && (
+            <a
+              href={product.data.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-border text-small font-medium text-ink-muted hover:text-ink hover:border-border-hover transition-colors duration-200"
+            >
+              View on GitHub
+            </a>
+          )}
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="py-16 border-b border-border">
+      <h2 class="text-title text-ink mb-8">Features</h2>
+      <FeatureGrid features={product.data.features} />
+    </section>
+
+    <!-- MDX Content -->
+    <section class="py-16 border-b border-border">
+      <div class="prose">
+        <Content />
+      </div>
+    </section>
+
+    <!-- Related Blog Posts -->
+    {relatedPosts.length > 0 && (
+      <section class="pt-16">
+        <div class="flex items-end justify-between mb-6">
+          <h2 class="text-title text-ink">Updates</h2>
+          <a
+            href={`/blog/tags/${product.id}/`}
+            class="text-small font-medium text-ink-muted hover:text-accent transition-colors duration-200"
+          >
+            View all &rarr;
+          </a>
+        </div>
+
+        <div class="divide-y divide-border">
+          {relatedPosts.map((post) => (
+            <BlogPostCard
+              title={post.data.title}
+              description={post.data.description}
+              pubDate={post.data.pubDate}
+              tags={post.data.tags}
+              slug={post.id}
+            />
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Bottom CTA -->
+    <section class="mt-16 p-8 rounded-2xl bg-surface-raised border border-border text-center">
+      <h3 class="text-heading text-ink mb-2">Ready to try {product.data.name}?</h3>
+      <p class="text-small text-ink-muted mb-6">{product.data.tagline}</p>
+      <a
+        href={product.data.installUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white text-small font-semibold hover:bg-accent-hover transition-colors duration-200 shadow-sm"
+      >
+        Install Free
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 8h8m-4-4 4 4-4 4" />
+        </svg>
+      </a>
+    </section>
+  </div>
+</BaseLayout>

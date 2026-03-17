@@ -1,0 +1,56 @@
+---
+interface Props {
+  prevUrl: string | undefined;
+  nextUrl: string | undefined;
+  currentPage: number;
+  lastPage: number;
+}
+
+const { prevUrl, nextUrl, currentPage, lastPage } = Astro.props;
+---
+
+{lastPage > 1 && (
+  <nav class="flex items-center justify-center gap-4 mt-12 pt-8 border-t border-border" aria-label="Pagination">
+    {prevUrl ? (
+      <a
+        href={prevUrl}
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-small font-medium text-ink-muted hover:text-ink hover:bg-surface-raised transition-colors duration-200"
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 4l-4 4 4 4" />
+        </svg>
+        Previous
+      </a>
+    ) : (
+      <span class="inline-flex items-center gap-1.5 px-4 py-2 text-small text-ink-faint">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+          <path d="M10 4l-4 4 4 4" />
+        </svg>
+        Previous
+      </span>
+    )}
+
+    <span class="text-small text-ink-faint">
+      {currentPage} / {lastPage}
+    </span>
+
+    {nextUrl ? (
+      <a
+        href={nextUrl}
+        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-small font-medium text-ink-muted hover:text-ink hover:bg-surface-raised transition-colors duration-200"
+      >
+        Next
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 4l4 4-4 4" />
+        </svg>
+      </a>
+    ) : (
+      <span class="inline-flex items-center gap-1.5 px-4 py-2 text-small text-ink-faint">
+        Next
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+          <path d="M6 4l4 4-4 4" />
+        </svg>
+      </span>
+    )}
+  </nav>
+)}
