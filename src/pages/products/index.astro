@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getCollection } from 'astro:content';
+
+const products = (await getCollection('products')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout
+  title="Products"
+  description="Developer tools and browser extensions by Blossom Studios. Small, focused software that does its job well."
+>
+  <div class="mx-auto max-w-[1120px] px-6 pt-16 pb-24">
+    <section class="pt-12 pb-8">
+      <h1 class="text-display text-ink">Products</h1>
+      <p class="text-body text-ink-muted mt-3">Tools we've built and shipped.</p>
+    </section>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {products.map((product) => (
+        <ProductCard
+          name={product.data.name}
+          tagline={product.data.tagline}
+          slug={product.id}
+          platforms={product.data.platforms}
+        />
+      ))}
+    </div>
+  </div>
+</BaseLayout>
