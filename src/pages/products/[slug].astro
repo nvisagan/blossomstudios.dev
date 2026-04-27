@@ -28,6 +28,12 @@ const platformLabels: Record<string, string> = {
   ios: 'iOS App',
 };
 
+// Web apps don't get installed — frame the CTA accordingly.
+const isWebOnly =
+  product.data.platforms.length > 0 &&
+  product.data.platforms.every((p: string) => p === 'web');
+const ctaLabel = isWebOnly ? 'Open App' : 'Install Free';
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -84,7 +90,7 @@ const jsonLd = {
             rel="noopener noreferrer"
             class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white text-small font-semibold hover:bg-accent-hover transition-colors duration-200 shadow-sm"
           >
-            Install Free
+            {ctaLabel}
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4 8h8m-4-4 4 4-4 4" />
             </svg>
@@ -153,7 +159,7 @@ const jsonLd = {
         rel="noopener noreferrer"
         class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white text-small font-semibold hover:bg-accent-hover transition-colors duration-200 shadow-sm"
       >
-        Install Free
+        {ctaLabel}
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 8h8m-4-4 4 4-4 4" />
         </svg>
