@@ -42,6 +42,21 @@
   --text-caption--line-height: 1.4;
 }
 
+/* Dark theme — warm dark that mirrors the light theme's personality */
+[data-theme="dark"] {
+  --color-surface: #13110f;
+  --color-surface-raised: #1c1a17;
+  --color-surface-overlay: #252320;
+  --color-ink: #f5f3ef;
+  --color-ink-muted: #a8a39c;
+  --color-ink-faint: #8d867f;
+  --color-accent: #9d83ff;
+  --color-accent-hover: #b29eff;
+  --color-accent-light: rgba(157, 131, 255, 0.14);
+  --color-border: #2a2724;
+  --color-border-hover: #3a3631;
+}
+
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -116,7 +131,7 @@ body {
 }
 
 .prose pre {
-  background: var(--color-ink);
+  background: #0a0908;
   color: #e5e5e5;
   padding: 1.25rem 1.5rem;
   border-radius: 12px;
@@ -173,3 +188,34 @@ body {
 .delay-3 { animation-delay: 0.3s; }
 .delay-4 { animation-delay: 0.4s; }
 .delay-5 { animation-delay: 0.5s; }
+
+/* Smooth color transitions when theme flips. Longhand (not shorthand) so
+ * elements that already use Tailwind's `transition-colors duration-200`
+ * can still assert their own duration on hover. */
+:root {
+  --theme-transition-property: background-color, border-color, color;
+  --theme-transition-duration: 180ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --theme-transition-duration: 0ms;
+  }
+}
+
+body,
+.bg-surface,
+.bg-surface-raised,
+.bg-surface-overlay,
+.bg-accent,
+.bg-accent-light,
+.text-ink,
+.text-ink-muted,
+.text-ink-faint,
+.text-accent,
+.border-border,
+.border-border-hover {
+  transition-property: var(--theme-transition-property);
+  transition-duration: var(--theme-transition-duration);
+  transition-timing-function: ease;
+}

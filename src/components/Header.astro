@@ -1,6 +1,8 @@
 ---
 const pathname = Astro.url.pathname;
 
+import ThemeToggle from './ThemeToggle.astro';
+
 const links = [
   { href: '/products/', label: 'Products' },
   { href: '/blog/', label: 'Blog' },
@@ -36,6 +38,7 @@ const links = [
           {label}
         </a>
       ))}
+      <ThemeToggle />
     </div>
 
     <!-- Mobile nav toggle -->
@@ -56,6 +59,11 @@ const links = [
             {label}
           </a>
         ))}
+        <div class="border-t border-border my-1"></div>
+        <div class="flex items-center justify-between px-3 py-1">
+          <span class="text-small font-medium text-ink-muted">Theme</span>
+          <ThemeToggle />
+        </div>
       </div>
     </details>
   </nav>
