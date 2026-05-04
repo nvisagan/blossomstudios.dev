@@ -104,3 +104,17 @@ A single icon-only button placed in the header, immediately before the desktop n
 - macOS Appearance flip while on the page in implicit mode: theme follows live.
 - DevTools `prefers-reduced-motion: reduce`: transitions are instant.
 - Lighthouse accessibility check on a representative page in both modes: no contrast regressions.
+
+## Implementation notes (post-build)
+
+Captured here so this document stays the canonical reference. Five deliberate deviations from the original spec made it into the shipped code:
+
+1. **`--color-ink-faint` (dark) raised twice for WCAG AA.** The original `#6e6964` failed AA against `#13110f` (3.47:1). It was first bumped to `#827b75` (4.55:1 on surface), then again to `#8d867f` (~5.0:1 on surface, ~4.5:1 on `bg-surface-raised` hover states in BlogPostCard and ProductCard).
+2. **`ThemeToggle` uses a `class` instead of an `id`.** The component is rendered twice on each page (desktop nav + mobile menu), so a unique `id` would have produced invalid HTML and bound the click handler to only the first instance. The script uses `querySelectorAll('.theme-toggle').forEach(...)` to bind both.
+3. **`<script>` (bundled) instead of `<script is:inline>` in the toggle component.** Astro doesn't deduplicate inline scripts; with two instances per page the IIFE would have run twice and double-bound listeners. Dropping `is:inline` lets Astro bundle and dedupe — exactly one bundled script reference per page regardless of instance count. The FOUC-prevention script in `Head.astro` stays `is:inline` because it must run synchronously before paint.
+4. **Theme transitions use longhand `transition-property/duration/timing-function` with a `:root` custom property, not the shorthand.** This composes cleanly with Tailwind's `transition-colors duration-200` on hovered elements (which would otherwise be overridden by the shorthand reset), and the `prefers-reduced-motion` override only flips the duration custom property to `0ms` — no selector-list duplication.
+5. **Mobile toggle UX upgraded from "separator + bare toggle" to a labeled row.** Inside the mobile dropdown, the toggle now sits in a `flex items-center justify-between px-3 py-1` row with a "Theme" label on the left and the icon button on the right, aligned with the link rows above it. The click handler also closes the parent `<details>` via `btn.closest('details')?.removeAttribute('open')` so the menu collapses after the user flips the theme.
+
+Deferred / acknowledged tradeoffs:
+- The simplified icon-swap (CSS `display` toggle on `:root[data-theme]`) replaces the design's "200ms scale/rotate" — works equally well under reduced-motion and is one source of truth. Not flagged as drift; just a simplification.
+- `bg-accent text-white` CTA buttons sit at ~3:1 contrast on the brighter dark-mode accent. Pre-existing pattern; reasonable to revisit if a future a11y pass demands it.
