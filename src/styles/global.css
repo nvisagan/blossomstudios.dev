@@ -67,9 +67,6 @@ body {
   background-color: var(--color-surface);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  transition:
-    background-color 180ms ease,
-    color 180ms ease;
 }
 
 ::selection {
@@ -192,31 +189,33 @@ body {
 .delay-4 { animation-delay: 0.4s; }
 .delay-5 { animation-delay: 0.5s; }
 
-/* Smooth color transitions when theme flips */
-.bg-surface,
-.bg-surface-raised,
-.bg-surface-overlay,
-.border-border,
-.border-border-hover,
-.text-ink,
-.text-ink-muted,
-.text-ink-faint {
-  transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease;
+/* Smooth color transitions when theme flips. Longhand (not shorthand) so
+ * elements that already use Tailwind's `transition-colors duration-200`
+ * can still assert their own duration on hover. */
+:root {
+  --theme-transition-property: background-color, border-color, color;
+  --theme-transition-duration: 180ms;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body,
-  .bg-surface,
-  .bg-surface-raised,
-  .bg-surface-overlay,
-  .border-border,
-  .border-border-hover,
-  .text-ink,
-  .text-ink-muted,
-  .text-ink-faint {
-    transition: none;
+  :root {
+    --theme-transition-duration: 0ms;
   }
+}
+
+body,
+.bg-surface,
+.bg-surface-raised,
+.bg-surface-overlay,
+.bg-accent,
+.bg-accent-light,
+.text-ink,
+.text-ink-muted,
+.text-ink-faint,
+.text-accent,
+.border-border,
+.border-border-hover {
+  transition-property: var(--theme-transition-property);
+  transition-duration: var(--theme-transition-duration);
+  transition-timing-function: ease;
 }
