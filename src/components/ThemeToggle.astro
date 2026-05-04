@@ -23,7 +23,7 @@
   </svg>
   <!-- Sun icon (shown in dark mode) -->
   <svg
-    class="theme-icon-sun w-4 h-4 hidden"
+    class="theme-icon-sun w-4 h-4"
     viewBox="0 0 16 16"
     fill="none"
     stroke="currentColor"
@@ -37,6 +37,9 @@
 </button>
 
 <style>
+  /* Selectors intentionally target :root (outside component scope).
+   * Astro scopes the descendant .theme-icon-* classes; the :root
+   * portion stays unscoped, which is what we want. */
   /* Reveal the right icon based on current theme */
   :root[data-theme="dark"] .theme-icon-moon { display: none; }
   :root[data-theme="dark"] .theme-icon-sun { display: inline-block; }
@@ -44,7 +47,7 @@
   :root:not([data-theme="dark"]) .theme-icon-moon { display: inline-block; }
 </style>
 
-<script is:inline>
+<script>
   (function () {
     var btns = document.querySelectorAll('.theme-toggle');
     if (!btns.length) return;
