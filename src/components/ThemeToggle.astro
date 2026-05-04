@@ -75,6 +75,7 @@
     btns.forEach(function (btn) {
       btn.addEventListener('click', function () {
         setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+        btn.closest('details')?.removeAttribute('open');
       });
     });
 
