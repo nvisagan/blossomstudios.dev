@@ -42,6 +42,21 @@
   --text-caption--line-height: 1.4;
 }
 
+/* Dark theme — warm dark that mirrors the light theme's personality */
+[data-theme="dark"] {
+  --color-surface: #13110f;
+  --color-surface-raised: #1c1a17;
+  --color-surface-overlay: #252320;
+  --color-ink: #f5f3ef;
+  --color-ink-muted: #a8a39c;
+  --color-ink-faint: #6e6964;
+  --color-accent: #9d83ff;
+  --color-accent-hover: #b29eff;
+  --color-accent-light: rgba(157, 131, 255, 0.14);
+  --color-border: #2a2724;
+  --color-border-hover: #3a3631;
+}
+
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
