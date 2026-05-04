@@ -131,7 +131,7 @@ body {
 }
 
 .prose pre {
-  background: var(--color-ink);
+  background: #0a0908;
   color: #e5e5e5;
   padding: 1.25rem 1.5rem;
   border-radius: 12px;
