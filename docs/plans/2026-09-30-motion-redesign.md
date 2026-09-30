@@ -1,7 +1,7 @@
 # Motion Redesign — "Things that open"
 
 **Date:** 2026-09-30
-**Status:** Homepage prototype implemented; product pages + Labs next
+**Status:** Homepage + product pages implemented; Labs next
 
 ## Direction
 
@@ -51,13 +51,32 @@ content in place. `--reveal-start` staggers siblings.
   `@property` integers + CSS counters. The un-animated state of each loop is a
   meaningful still, which is what reduced-motion visitors see.
 
+## Product pages (implemented)
+
+- **Card → page morph:** native cross-document View Transitions
+  (`@view-transition { navigation: auto }` in `global.css`). The card stage and
+  name share `view-transition-name`s (`stage-<slug>`, `name-<slug>`) with the
+  product hero, so they glide into place; the header is named too so it holds
+  still. Chosen over Astro's `<ClientRouter />` because the router swaps
+  `<html>` attributes (dropping `data-theme`) and would require every script to
+  re-initialise on `astro:page-load`. Unsupported browsers (Firefox today) and
+  reduced-motion visitors get a normal navigation.
+- **Hero:** two columns; the product's own demo loop plays at hero scale in a
+  hue-shadowed frame (`ProductStage.astro`, shared with the cards).
+- **Feature walkthrough** (`FeatureWalkthrough.astro`, replaces `FeatureGrid`):
+  on large screens a sticky index tracks the feature in the middle band of the
+  viewport (a small IntersectionObserver sets `data-active`), with a hue
+  progress line; features brighten as they cross the centre via a scroll-driven
+  animation. "(Pro)" in a description renders as a pill. Mobile gets a plain
+  spaced list.
+- Story, Updates and closing CTA share the same 4/7 editorial grid.
+
 ## Next
 
-- Product pages: view-transition morph from card stage → page hero
-  (`<ClientRouter />` + `transition:name`), pinned scroll walkthrough replacing
-  `FeatureGrid`.
 - Theme toggle: the blossom closes at night.
 - Blog: reading-progress stem that blooms at the end of a post.
+- Per-feature demo states (e.g. walkthrough step "Condition-Aware" drives the
+  TCGIQ chips) if the walkthrough earns it.
 
 ## Labs — `labs.blossomstudios.dev`
 

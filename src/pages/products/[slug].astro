@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import FeatureGrid from '../../components/FeatureGrid.astro';
+import FeatureWalkthrough from '../../components/FeatureWalkthrough.astro';
+import ProductStage from '../../components/ProductStage.astro';
 import BlogPostCard from '../../components/BlogPostCard.astro';
 import { getCollection, render } from 'astro:content';
 
@@ -34,6 +35,16 @@ const isWebOnly =
   product.data.platforms.every((p: string) => p === 'web');
 const ctaLabel = isWebOnly ? 'Open App' : 'Install Free';
 
+const pricingLabels = {
+  free: 'Free',
+  freemium: 'Free · Pro available',
+  paid: 'Paid',
+};
+const eyebrow = [
+  ...product.data.platforms.map((p: string) => platformLabels[p] || p),
+  pricingLabels[product.data.pricing],
+].join(' · ');
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -60,110 +71,196 @@ const jsonLd = {
   description={product.data.description}
   jsonLd={jsonLd}
 >
-  <div class="mx-auto max-w-[1120px] px-6 pt-16 pb-24">
-    <!-- Product Header -->
-    <section class="pt-12 pb-16 border-b border-border">
-      <div class="max-w-2xl">
-        <div class="w-14 h-14 rounded-2xl bg-accent-light flex items-center justify-center mb-6">
-          <span class="text-2xl font-bold text-accent">{product.data.name[0]}</span>
-        </div>
+  <div class="product-page" style={`--hue: var(--color-hue-${product.data.hue})`}>
+    <!-- Hero -->
+    <section class="relative overflow-hidden">
+      <div class="hero-wash" aria-hidden="true"></div>
 
-        <h1 class="text-display text-ink">{product.data.name}</h1>
-        <p class="text-body text-ink-muted mt-3 text-lg leading-relaxed">{product.data.tagline}</p>
+      <div class="relative mx-auto max-w-[1120px] px-6 pt-10 pb-20 sm:pt-14 sm:pb-24">
+        <a href="/products/" class="back inline-flex items-center gap-1.5 text-small font-medium text-ink-muted hover:text-ink transition-colors duration-200">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 8H4m4 4-4-4 4-4" />
+          </svg>
+          All products
+        </a>
 
-        <div class="flex flex-wrap items-center gap-3 mt-4">
-          {product.data.platforms.map((p: string) => (
-            <span class="inline-flex items-center gap-1.5 text-small text-ink-muted">
-              <span class="w-1.5 h-1.5 rounded-full bg-accent/50"></span>
-              {platformLabels[p] || p}
-            </span>
-          ))}
-          {product.data.version && (
-            <span class="text-small text-ink-faint">v{product.data.version}</span>
-          )}
-        </div>
+        <div class="grid items-center gap-12 lg:gap-16 lg:grid-cols-2 mt-10">
+          <div>
+            <span class="block font-mono text-caption text-ink-faint mb-4 animate-in">{eyebrow}</span>
 
-        <div class="flex items-center gap-3 mt-8">
-          <a
-            href={product.data.installUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white text-small font-semibold hover:bg-accent-hover transition-colors duration-200 shadow-sm"
-          >
-            {ctaLabel}
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <h1 class="product-title text-display text-ink" style={`view-transition-name: name-${product.id}`}>
+              {product.data.name}
+            </h1>
+            <p class="text-ink-muted mt-4 text-lg leading-relaxed max-w-md animate-in delay-1">{product.data.tagline}</p>
+
+            <div class="flex flex-wrap items-center gap-3 mt-8 animate-in delay-2">
+              <a
+                href={product.data.installUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="cta inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-ink text-surface text-small font-semibold hover:bg-ink/90 transition-colors duration-200"
+              >
+                {ctaLabel}
+                <svg class="cta-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M4 8h8m-4-4 4 4-4 4" />
             </svg>
-          </a>
-          {product.data.githubUrl && (
-            <a
-              href={product.data.githubUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-border text-small font-medium text-ink-muted hover:text-ink hover:border-border-hover transition-colors duration-200"
-            >
-              View on GitHub
-            </a>
-          )}
+              </a>
+              {product.data.githubUrl && (
+                <a
+                  href={product.data.githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-border text-small font-medium text-ink-muted hover:text-ink hover:border-border-hover transition-colors duration-200"
+                >
+                  View on GitHub
+                </a>
+              )}
+              {product.data.version && (
+                <span class="font-mono text-caption text-ink-faint ml-1">v{product.data.version}</span>
+              )}
+            </div>
+          </div>
+
+          <div class="stage-frame">
+            <ProductStage slug={product.id} name={product.data.name} />
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Features -->
-    <section class="py-16 border-b border-border">
-      <h2 class="text-title text-ink mb-8">Features</h2>
-      <FeatureGrid features={product.data.features} />
+    <section class="mx-auto max-w-[1120px] px-6 py-20 border-t border-border">
+      <div class="mb-12 lg:mb-16 reveal">
+        <span class="block font-mono text-caption text-ink-faint mb-2">01 — Features</span>
+        <h2 class="text-title text-ink">What {product.data.name} does</h2>
+      </div>
+      <FeatureWalkthrough features={product.data.features} />
     </section>
 
     <!-- MDX Content -->
-    <section class="py-16 border-b border-border">
-      <div class="prose">
-        <Content />
+    <section class="mx-auto max-w-[1120px] px-6 py-20 border-t border-border">
+      <div class="grid gap-8 grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:gap-20">
+        <div class="reveal">
+          <span class="block font-mono text-caption text-ink-faint mb-2">02 — In detail</span>
+          <h2 class="text-title text-ink">The story</h2>
+        </div>
+        <div class="prose reveal">
+          <Content />
+        </div>
       </div>
     </section>
 
     <!-- Related Blog Posts -->
     {relatedPosts.length > 0 && (
-      <section class="pt-16">
-        <div class="flex items-end justify-between mb-6">
-          <h2 class="text-title text-ink">Updates</h2>
-          <a
-            href={`/blog/tags/${product.id}/`}
-            class="text-small font-medium text-ink-muted hover:text-accent transition-colors duration-200"
-          >
-            View all &rarr;
-          </a>
-        </div>
+      <section class="mx-auto max-w-[1120px] px-6 py-20 border-t border-border">
+        <div class="grid gap-8 grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:gap-20">
+          <div class="reveal">
+            <span class="block font-mono text-caption text-ink-faint mb-2">03 — Journal</span>
+            <h2 class="text-title text-ink">Updates</h2>
+            <a
+              href={`/blog/tags/${product.id}/`}
+              class="inline-block mt-3 text-small font-medium text-ink-muted hover:text-ink transition-colors duration-200"
+            >
+              View all &rarr;
+            </a>
+          </div>
 
-        <div class="divide-y divide-border">
-          {relatedPosts.map((post) => (
-            <BlogPostCard
-              title={post.data.title}
-              description={post.data.description}
-              pubDate={post.data.pubDate}
-              tags={post.data.tags}
-              slug={post.id}
-            />
-          ))}
+          <div class="divide-y divide-border reveal">
+            {relatedPosts.map((post) => (
+              <BlogPostCard
+                title={post.data.title}
+                description={post.data.description}
+                pubDate={post.data.pubDate}
+                tags={post.data.tags}
+                slug={post.id}
+              />
+            ))}
+          </div>
         </div>
       </section>
     )}
 
     <!-- Bottom CTA -->
-    <section class="mt-16 p-8 rounded-2xl bg-surface-raised border border-border text-center">
-      <h3 class="text-heading text-ink mb-2">Ready to try {product.data.name}?</h3>
-      <p class="text-small text-ink-muted mb-6">{product.data.tagline}</p>
-      <a
-        href={product.data.installUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-accent text-white text-small font-semibold hover:bg-accent-hover transition-colors duration-200 shadow-sm"
-      >
-        {ctaLabel}
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 8h8m-4-4 4 4-4 4" />
-        </svg>
-      </a>
+    <section class="mx-auto max-w-[1120px] px-6 pt-4">
+      <div class="closing reveal">
+        <span class="closing-petal" aria-hidden="true"></span>
+        <h3 class="text-title text-ink">Ready to try {product.data.name}?</h3>
+        <p class="text-body text-ink-muted mt-2 mb-7">{product.data.tagline}</p>
+        <a
+          href={product.data.installUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="cta inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-ink text-surface text-small font-semibold hover:bg-ink/90 transition-colors duration-200"
+        >
+          {ctaLabel}
+          <svg class="cta-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 8h8m-4-4 4 4-4 4" />
+            </svg>
+        </a>
+      </div>
     </section>
   </div>
+
+<style>
+  .hero-wash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(60% 70% at 85% 20%, color-mix(in oklab, var(--hue) 14%, transparent), transparent 70%);
+    mask-image: linear-gradient(to bottom, #000 50%, transparent);
+  }
+
+  /* fit-content so the title keeps its aspect ratio while morphing from the card */
+  .product-title {
+    width: fit-content;
+  }
+
+  .stage-frame {
+    padding: 0.5rem;
+    border-radius: 1.5rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    box-shadow: 0 30px 60px -40px color-mix(in oklab, var(--hue) 60%, transparent);
+  }
+
+  .stage-frame :global(.stage) {
+    border-radius: 1.125rem;
+  }
+
+  .back svg,
+  .cta-arrow {
+    transition: transform var(--dur-ui) var(--ease-bloom);
+  }
+
+  .back:hover svg {
+    transform: translateX(-3px);
+  }
+
+  .cta:hover .cta-arrow,
+  .cta:focus-visible .cta-arrow {
+    transform: translateX(3px);
+  }
+
+  .closing {
+    position: relative;
+    overflow: hidden;
+    padding: 4rem 2rem;
+    border-radius: 1.5rem;
+    border: 1px solid var(--color-border);
+    text-align: center;
+    background:
+      radial-gradient(50% 80% at 50% 0%, color-mix(in oklab, var(--hue) 13%, transparent), transparent 70%),
+      var(--color-surface-raised);
+  }
+
+  .closing-petal {
+    display: block;
+    width: 14px;
+    height: 14px;
+    margin: 0 auto 1.25rem;
+    border-radius: 50%;
+    background: var(--hue);
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--hue) 18%, transparent);
+  }
+</style>
 </BaseLayout>

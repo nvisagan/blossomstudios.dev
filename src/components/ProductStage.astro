@@ -1,0 +1,84 @@
+---
+import TcgiqDemo from './demos/TcgiqDemo.astro';
+import FavigrabDemo from './demos/FavigrabDemo.astro';
+import LockInDemo from './demos/LockInDemo.astro';
+
+/**
+ * The framed stage a product's demo loop plays in. Used by product cards and
+ * the product page hero; both carry the same `view-transition-name`, so
+ * navigating card → page morphs one into the other.
+ * Expects `--hue` to be set by an ancestor.
+ */
+interface Props {
+  slug: string;
+  name: string;
+  class?: string;
+}
+
+const { slug, name, class: className } = Astro.props;
+
+// Each product gets a short loop of itself at work. Products without one
+// fall back to a monogram in their hue.
+const demos: Record<string, any> = {
+  tcgiq: TcgiqDemo,
+  favigrab: FavigrabDemo,
+  'lock-in-timer': LockInDemo,
+};
+const Demo = demos[slug];
+---
+
+<div
+  class:list={['stage', className]}
+  style={`view-transition-name: stage-${slug}`}
+  data-demo
+>
+  {Demo ? <Demo /> : (
+    <span class="monogram" aria-hidden="true">{name[0]}</span>
+  )}
+</div>
+
+<style>
+  .stage {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 0.875rem;
+    container-type: inline-size;
+    background:
+      radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--hue) 12%, transparent), transparent 70%),
+      var(--color-surface-raised);
+  }
+
+  .monogram {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 18cqw;
+    font-weight: 700;
+    color: var(--hue);
+  }
+
+  /* Loops only run while on screen (see script). */
+  .stage[data-paused] :global(*) {
+    animation-play-state: paused !important;
+  }
+</style>
+
+<script>
+  // Pause demo loops while they're off screen instead of burning frames the
+  // visitor can't see.
+  const stages = document.querySelectorAll<HTMLElement>('[data-demo]');
+  if ('IntersectionObserver' in window && stages.length) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => e.target.toggleAttribute('data-paused', !e.isIntersecting));
+      },
+      { threshold: 0.25 },
+    );
+    stages.forEach((s) => {
+      s.setAttribute('data-paused', '');
+      io.observe(s);
+    });
+  }
+</script>

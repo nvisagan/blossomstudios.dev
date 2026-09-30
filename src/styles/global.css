@@ -161,6 +161,25 @@ body {
   }
 }
 
+/* Cross-document view transitions. Browsers that support them (Chromium,
+ * Safari 18.2+) morph elements that share a `view-transition-name` between
+ * pages (product card stage → product hero); others navigate normally. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.6s;
+  animation-timing-function: var(--ease-bloom);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+}
+
 /* Smooth color transitions when theme flips. Longhand (not shorthand) so
  * elements that already use Tailwind's `transition-colors duration-200`
  * can still assert their own duration on hover. */
