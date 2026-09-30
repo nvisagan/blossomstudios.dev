@@ -1,7 +1,7 @@
 # Motion Redesign — "Things that open"
 
 **Date:** 2026-09-30
-**Status:** Homepage + product pages implemented; Labs next
+**Status:** Homepage, product pages and brand details implemented; Labs next
 
 ## Direction
 
@@ -71,12 +71,27 @@ content in place. `--reveal-start` staggers siblings.
   spaced list.
 - Story, Updates and closing CTA share the same 4/7 editorial grid.
 
+## Brand details (implemented)
+
+- **Theme toggle:** the blossom glyph is open by day; at night its petals fold
+  onto one centre and fill in, reading as a small moon beside two stars.
+- **Header logo:** petals part slightly on hover.
+- **Blog:** post-card titles share `view-transition-name: post-<slug>` with the
+  post's H1, so they morph on navigation; the list eases in with staggered
+  scroll reveals. Posts get a reading stem in the right-hand column, bound to
+  the post body's view timeline (`timeline-scope: --post`), which fills as you
+  read and blooms over the last stretch — in the related product's hue.
+  Hidden where scroll-driven animations aren't supported.
+- **404:** "This page lost a petal." One petal drifts to the ground, leaving a
+  dashed outline; the resting frame doubles as the reduced-motion state.
+- **OG image:** `public/og-default.png` (1200×630), rendered from HTML with
+  the brand font — headline, blossom in product hues, product row.
+
 ## Next
 
-- Theme toggle: the blossom closes at night.
-- Blog: reading-progress stem that blooms at the end of a post.
-- Per-feature demo states (e.g. walkthrough step "Condition-Aware" drives the
-  TCGIQ chips) if the walkthrough earns it.
+- Labs (below).
+- Products index hero to match the homepage.
+- Per-feature demo states in the walkthrough, if it earns it.
 
 ## Labs — `labs.blossomstudios.dev`
 

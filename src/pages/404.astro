@@ -7,9 +7,20 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   description="The page you're looking for doesn't exist."
 >
   <div class="mx-auto max-w-[1120px] px-6 pt-16 pb-24">
-    <div class="flex flex-col items-center justify-center min-h-[50vh] text-center">
-      <span class="text-6xl font-bold text-ink-faint mb-4">404</span>
-      <h1 class="text-title text-ink mb-2">Page not found</h1>
+    <div class="flex flex-col items-center justify-center min-h-[60vh] text-center">
+      <!-- The blossom loses a petal; it drifts down and settles. The resting
+           frame is the static state, so reduced motion sees the same story. -->
+      <svg class="lost w-52 mb-6" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <line class="ground" x1="44" y1="190" x2="156" y2="190" />
+        <circle class="petal" cx="100" cy="48" r="24" style="fill: var(--color-hue-violet)" />
+        <circle class="petal" cx="80" cy="72" r="20" style="fill: var(--color-hue-gold)" />
+        <circle class="petal" cx="100" cy="92" r="16" style="fill: var(--color-hue-ember)" />
+        <circle class="ghost" cx="120" cy="72" r="20" />
+        <circle class="petal fallen" cx="120" cy="72" r="20" style="fill: var(--color-hue-sky)" />
+      </svg>
+
+      <span class="font-mono text-caption text-ink-faint mb-3">404</span>
+      <h1 class="text-title text-ink mb-2">This page lost a petal.</h1>
       <p class="text-body text-ink-muted mb-8">
         The page you're looking for doesn't exist or has been moved.
       </p>
@@ -25,3 +36,64 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     </div>
   </div>
 </BaseLayout>
+
+<style>
+  .lost {
+    overflow: visible;
+  }
+
+  .lost circle {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .petal {
+    opacity: 0.75;
+  }
+
+  :global([data-theme="dark"]) .petal {
+    mix-blend-mode: screen;
+  }
+
+  .ground {
+    stroke: var(--color-border-hover);
+    stroke-linecap: round;
+  }
+
+  .ghost {
+    stroke: var(--color-border-hover);
+    stroke-dasharray: 3 3;
+  }
+
+  /* Resting place on the ground (centre 148, 174), slightly squashed */
+  .fallen {
+    transform: translate(28px, 102px) scale(1.06, 0.8);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .fallen {
+      animation: petal-fall 3.4s var(--ease-soft) 0.5s both;
+    }
+
+    .ghost {
+      animation: ghost-in 0.8s var(--ease-soft) 0.9s both;
+    }
+  }
+
+  @keyframes petal-fall {
+    0% { transform: none; }
+    6% { transform: translate(1.5px, -1px) rotate(4deg); }
+    12% { transform: translate(-1px, 1px); }
+    18% { transform: translate(2px, 4px); }
+    36% { transform: translate(-10px, 30px); }
+    54% { transform: translate(18px, 56px); }
+    72% { transform: translate(4px, 80px); }
+    88% { transform: translate(28px, 102px) scale(1); }
+    94% { transform: translate(28px, 103px) scale(1.12, 0.74); }
+    100% { transform: translate(28px, 102px) scale(1.06, 0.8); }
+  }
+
+  @keyframes ghost-in {
+    from { opacity: 0; }
+  }
+</style>

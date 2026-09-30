@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import TagPill from '../../components/TagPill.astro';
-import { getCollection, render } from 'astro:content';
+import { getCollection, getEntry, render } from 'astro:content';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
@@ -24,6 +24,10 @@ const readingTime = Math.max(
   1,
   Math.ceil((post.body?.split(/\s+/).length || 0) / 200)
 );
+
+// Posts about a product take that product's hue; the rest use studio violet.
+const product = post.data.product ? await getEntry('products', post.data.product) : undefined;
+const hue = product?.data.hue ?? 'violet';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -53,7 +57,7 @@ const jsonLd = {
   publishedDate={post.data.pubDate.toISOString()}
   modifiedDate={post.data.updatedDate?.toISOString()}
 >
-  <article class="mx-auto max-w-[1120px] px-6 pt-16 pb-24">
+  <article class="mx-auto max-w-[1120px] px-6 pt-16 pb-24" style={`--hue: var(--color-hue-${hue})`}>
     <header class="max-w-2xl pt-12 pb-10 border-b border-border mb-10">
       <div class="flex items-center gap-3 mb-4">
         {post.data.tags.map((tag: string) => (
@@ -61,7 +65,7 @@ const jsonLd = {
         ))}
       </div>
 
-      <h1 class="text-display text-ink">{post.data.title}</h1>
+      <h1 class="w-fit max-w-full text-display text-ink" style={`view-transition-name: post-${post.id}`}>{post.data.title}</h1>
 
       <div class="flex items-center gap-3 mt-4 text-small text-ink-faint">
         <time datetime={post.data.pubDate.toISOString()}>{formattedDate}</time>
@@ -72,8 +76,24 @@ const jsonLd = {
       </div>
     </header>
 
-    <div class="prose max-w-2xl">
-      <Content />
+    <div class="post-body lg:grid lg:grid-cols-[minmax(0,42rem)_1fr] lg:gap-16">
+      <div class="prose max-w-2xl post-text">
+        <Content />
+      </div>
+
+      <!-- Reading stem: grows with your progress, blooms at the end -->
+      <aside class="reading" aria-hidden="true">
+        <div class="reading-inner">
+          <span class="font-mono text-caption text-ink-faint">{readingTime} min read</span>
+          <span class="stem"><span class="stem-fill"></span></span>
+          <svg class="stem-bloom" viewBox="0 0 16 16" fill="none">
+            <circle class="sb-petal" style="--fx: 0px; --fy: 2.5px" cx="8" cy="6" r="3" />
+            <circle class="sb-petal" style="--fx: 2.5px; --fy: 0px" cx="5.5" cy="9" r="2.5" />
+            <circle class="sb-petal" style="--fx: -2.5px; --fy: 0px" cx="10.5" cy="9" r="2.5" />
+            <circle class="sb-petal" style="--fx: 0px; --fy: -2.5px" cx="8" cy="11.5" r="2" />
+          </svg>
+        </div>
+      </aside>
     </div>
 
     <footer class="max-w-2xl mt-16 pt-8 border-t border-border">
@@ -89,3 +109,93 @@ const jsonLd = {
     </footer>
   </article>
 </BaseLayout>
+
+<style>
+  /* Reading progress. The stem is tied to the post body's view timeline,
+   * so it fills as you scroll through the text itself (not the whole page)
+   * and the blossom opens over the last stretch. Browsers without
+   * scroll-driven animations simply don't show it. */
+  .post-body {
+    timeline-scope: --post;
+  }
+
+  .post-text {
+    view-timeline-name: --post;
+  }
+
+  .reading {
+    display: none;
+  }
+
+  .reading-inner {
+    position: sticky;
+    top: 8rem;
+    display: grid;
+    justify-items: start;
+    gap: 1rem;
+  }
+
+  .stem {
+    position: relative;
+    width: 2px;
+    height: 12rem;
+    margin-left: 0.6rem;
+    border-radius: 2px;
+    background: var(--color-border);
+    overflow: hidden;
+  }
+
+  .stem-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--hue);
+    transform-origin: top;
+  }
+
+  .stem-bloom {
+    width: 1.6rem;
+    height: 1.6rem;
+    margin-top: -0.7rem;
+    margin-left: -0.1rem;
+    overflow: visible;
+  }
+
+  .sb-petal {
+    fill: var(--hue);
+    opacity: 0.8;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (min-width: 1024px) {
+      .reading {
+        display: block;
+      }
+    }
+
+    .stem-fill {
+      animation: stem-grow linear both;
+      animation-timeline: --post;
+      animation-range: contain 0% contain 100%;
+    }
+
+    .sb-petal {
+      animation: stem-bloom linear both;
+      animation-timeline: --post;
+      animation-range: contain 88% contain 100%;
+    }
+  }
+
+  @keyframes stem-grow {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+
+  @keyframes stem-bloom {
+    from {
+      transform: translate(var(--fx), var(--fy)) scale(0.3);
+      opacity: 0.35;
+    }
+  }
+</style>
