@@ -19,6 +19,8 @@ const products = defineCollection({
         description: z.string(),
       })
     ),
+    // Product hue token (see --color-hue-* in tokens.css).
+    hue: z.enum(['violet', 'gold', 'sky', 'ember']).default('violet'),
     order: z.number().default(0),
   }),
 });

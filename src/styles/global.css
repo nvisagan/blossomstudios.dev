@@ -1,61 +1,7 @@
 @import "tailwindcss";
 @import "@fontsource-variable/plus-jakarta-sans";
 
-@theme {
-  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-
-  --color-surface: #fafaf9;
-  --color-surface-raised: #f5f4f1;
-  --color-surface-overlay: #eeedea;
-  --color-ink: #0f0f0f;
-  --color-ink-muted: #6b6b6b;
-  --color-ink-faint: #a3a3a3;
-  --color-accent: #7c5cfc;
-  --color-accent-hover: #6a47f0;
-  --color-accent-light: #ece8ff;
-  --color-border: #e8e6e3;
-  --color-border-hover: #d4d1cc;
-
-  --text-display: 3.5rem;
-  --text-display--line-height: 1.05;
-  --text-display--letter-spacing: -0.035em;
-  --text-display--font-weight: 700;
-
-  --text-title: 2rem;
-  --text-title--line-height: 1.15;
-  --text-title--letter-spacing: -0.025em;
-  --text-title--font-weight: 700;
-
-  --text-heading: 1.25rem;
-  --text-heading--line-height: 1.3;
-  --text-heading--letter-spacing: -0.015em;
-  --text-heading--font-weight: 600;
-
-  --text-body: 1rem;
-  --text-body--line-height: 1.65;
-
-  --text-small: 0.875rem;
-  --text-small--line-height: 1.5;
-
-  --text-caption: 0.8125rem;
-  --text-caption--line-height: 1.4;
-}
-
-/* Dark theme — warm dark that mirrors the light theme's personality */
-[data-theme="dark"] {
-  --color-surface: #13110f;
-  --color-surface-raised: #1c1a17;
-  --color-surface-overlay: #252320;
-  --color-ink: #f5f3ef;
-  --color-ink-muted: #a8a39c;
-  --color-ink-faint: #8d867f;
-  --color-accent: #9d83ff;
-  --color-accent-hover: #b29eff;
-  --color-accent-light: rgba(157, 131, 255, 0.14);
-  --color-border: #2a2724;
-  --color-border-hover: #3a3631;
-}
+@import "./tokens.css";
 
 html {
   -webkit-font-smoothing: antialiased;
@@ -180,7 +126,7 @@ body {
 }
 
 .animate-in {
-  animation: fade-in-up 0.6s ease-out both;
+  animation: fade-in-up 0.6s var(--ease-bloom) both;
 }
 
 .delay-1 { animation-delay: 0.1s; }
@@ -188,6 +134,32 @@ body {
 .delay-3 { animation-delay: 0.3s; }
 .delay-4 { animation-delay: 0.4s; }
 .delay-5 { animation-delay: 0.5s; }
+
+/* Scroll-driven reveal. Progressive enhancement: browsers without
+ * view timelines (or visitors who prefer reduced motion) simply see the
+ * content in place. `--reveal-start` lets siblings stagger their entry. */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry var(--reveal-start, 0%) entry calc(var(--reveal-start, 0%) + 55%);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-in {
+    animation: none;
+  }
+}
 
 /* Smooth color transitions when theme flips. Longhand (not shorthand) so
  * elements that already use Tailwind's `transition-colors duration-200`

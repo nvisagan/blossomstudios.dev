@@ -1,12 +1,18 @@
 ---
+import TcgiqDemo from './demos/TcgiqDemo.astro';
+import FavigrabDemo from './demos/FavigrabDemo.astro';
+import LockInDemo from './demos/LockInDemo.astro';
+
 interface Props {
   name: string;
   tagline: string;
   slug: string;
   platforms: string[];
+  hue?: string;
+  index?: number;
 }
 
-const { name, tagline, slug, platforms } = Astro.props;
+const { name, tagline, slug, platforms, hue = 'violet', index = 0 } = Astro.props;
 
 const platformLabels: Record<string, string> = {
   chrome: 'Chrome Extension',
@@ -15,31 +21,127 @@ const platformLabels: Record<string, string> = {
   macos: 'macOS App',
   ios: 'iOS App',
 };
+
+// Each product gets a short loop of itself at work. Products without one
+// fall back to a monogram in their hue.
+const demos: Record<string, any> = {
+  tcgiq: TcgiqDemo,
+  favigrab: FavigrabDemo,
+  'lock-in-timer': LockInDemo,
+};
+const Demo = demos[slug];
 ---
 
 <a
   href={`/products/${slug}/`}
-  class="group block p-6 rounded-2xl border border-border bg-surface hover:border-border-hover hover:bg-surface-raised transition-all duration-300 hover:shadow-sm"
+  class="product-card group reveal"
+  style={`--hue: var(--color-hue-${hue}); --reveal-start: ${index * 12}%`}
 >
-  <div class="flex items-start gap-4">
-    <div class="w-12 h-12 rounded-xl bg-accent-light flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
-      <span class="text-xl font-bold text-accent">{name[0]}</span>
+  <div class="stage" data-demo>
+    {Demo ? <Demo /> : (
+      <span class="monogram" aria-hidden="true">{name[0]}</span>
+    )}
+  </div>
+
+  <div class="px-6 pt-5 pb-6">
+    <div class="flex items-center justify-between gap-3">
+      <h3 class="text-heading font-semibold text-ink">{name}</h3>
+      <svg class="arrow shrink-0 text-ink-faint" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 11 11 5M6 5h5v5" />
+      </svg>
     </div>
-    <div class="min-w-0">
-      <h3 class="text-heading font-semibold text-ink group-hover:text-accent transition-colors duration-200">
-        {name}
-      </h3>
-      <p class="text-small text-ink-muted mt-1 leading-relaxed">
-        {tagline}
-      </p>
-      <div class="flex flex-wrap gap-2 mt-3">
-        {platforms.map((p) => (
-          <span class="inline-flex items-center gap-1 text-caption text-ink-faint">
-            <span class="w-1 h-1 rounded-full bg-accent/40"></span>
-            {platformLabels[p] || p}
-          </span>
-        ))}
-      </div>
+    <p class="text-small text-ink-muted mt-1 leading-relaxed">
+      {tagline}
+    </p>
+    <div class="flex flex-wrap gap-3 mt-3">
+      {platforms.map((p) => (
+        <span class="inline-flex items-center gap-1.5 text-caption text-ink-faint">
+          <span class="w-1.5 h-1.5 rounded-full" style="background: var(--hue)"></span>
+          {platformLabels[p] || p}
+        </span>
+      ))}
     </div>
   </div>
 </a>
+
+<style>
+  .product-card {
+    display: block;
+    border-radius: 1.25rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    padding: 0.5rem;
+    transition:
+      transform var(--dur-ui) var(--ease-bloom),
+      border-color var(--dur-ui) var(--ease-soft),
+      box-shadow var(--dur-ui) var(--ease-soft);
+  }
+
+  .product-card:hover,
+  .product-card:focus-visible {
+    transform: translateY(-3px);
+    border-color: color-mix(in oklab, var(--hue) 35%, var(--color-border));
+    box-shadow: 0 18px 40px -24px color-mix(in oklab, var(--hue) 55%, transparent);
+  }
+
+  .product-card:focus-visible {
+    outline: 2px solid var(--hue);
+    outline-offset: 3px;
+  }
+
+  .stage {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 0.875rem;
+    container-type: inline-size;
+    background:
+      radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--hue) 12%, transparent), transparent 70%),
+      var(--color-surface-raised);
+  }
+
+  .monogram {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 18cqw;
+    font-weight: 700;
+    color: var(--hue);
+  }
+
+  .arrow {
+    transition:
+      transform var(--dur-ui) var(--ease-bloom),
+      color var(--dur-ui) var(--ease-soft);
+  }
+
+  .product-card:hover .arrow,
+  .product-card:focus-visible .arrow {
+    color: var(--hue);
+    transform: translate(2px, -2px);
+  }
+
+  /* Loops only run while on screen (see script). */
+  .stage[data-paused] :global(*) {
+    animation-play-state: paused !important;
+  }
+</style>
+
+<script>
+  // Pause demo loops while they're off screen; they start fresh-ish when
+  // scrolled into view instead of burning frames the visitor can't see.
+  const stages = document.querySelectorAll<HTMLElement>('[data-demo]');
+  if ('IntersectionObserver' in window && stages.length) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => e.target.toggleAttribute('data-paused', !e.isIntersecting));
+      },
+      { threshold: 0.25 },
+    );
+    stages.forEach((s) => {
+      s.setAttribute('data-paused', '');
+      io.observe(s);
+    });
+  }
+</script>
