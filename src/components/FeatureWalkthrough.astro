@@ -1,0 +1,265 @@
+---
+/**
+ * Features as a paced read rather than a grid. On large screens a sticky
+ * index tracks which feature is in focus; each feature brightens as it
+ * crosses the middle of the viewport (scroll-driven, CSS only). Small
+ * screens get a plain, well-spaced list.
+ * Expects `--hue` to be set by an ancestor.
+ */
+interface Feature {
+  title: string;
+  description: string;
+}
+
+interface Props {
+  features: Feature[];
+}
+
+const { features } = Astro.props;
+
+// "(Pro)" at the end of a description becomes a pill instead of prose.
+const items = features.map((f, i) => {
+  const pro = /\s*\(Pro\)\s*$/.test(f.description);
+  return {
+    ...f,
+    description: f.description.replace(/\s*\(Pro\)\s*$/, ''),
+    pro,
+    num: String(i + 1).padStart(2, '0'),
+    id: `feature-${i + 1}`,
+  };
+});
+---
+
+<div class="walk grid gap-10 grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,4fr)_minmax(0,7fr)] lg:gap-20" data-walk style={`--count: ${items.length}`}>
+  <aside class="hidden lg:block">
+    <nav class="rail" aria-label="Features">
+      <span class="block font-mono text-caption text-ink-faint mb-5">
+        {String(items.length).padStart(2, '0')} features
+      </span>
+      <div class="rail-body">
+        <span class="rail-track" aria-hidden="true"><span class="rail-fill"></span></span>
+        <ol>
+          {items.map((f, i) => (
+            <li>
+              <a href={`#${f.id}`} class="rail-item" data-rail-item data-active={i === 0 ? '' : undefined}>
+                <span class="rail-num font-mono">{f.num}</span>
+                <span class="rail-title">{f.title}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </nav>
+  </aside>
+
+  <ol class="features">
+    {items.map((f, i) => (
+      <li id={f.id} class="feature" data-feature data-active={i === 0 ? '' : undefined}>
+        <div class="flex items-center gap-3 mb-3">
+          <span class="feature-petal" aria-hidden="true"></span>
+          <span class="feature-num font-mono text-caption">{f.num}</span>
+          {f.pro && <span class="pro">Pro</span>}
+        </div>
+        <h3 class="feature-title">{f.title}</h3>
+        <p class="text-body text-ink-muted mt-3 max-w-[46ch]">{f.description}</p>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<style>
+  /* ---- Sticky index ---- */
+  .rail {
+    position: sticky;
+    top: 7rem;
+  }
+
+  .rail-body {
+    position: relative;
+    padding-left: 1.25rem;
+  }
+
+  .rail-track {
+    position: absolute;
+    left: 0;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--color-border);
+    overflow: hidden;
+  }
+
+  .rail-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--hue);
+    transform-origin: top;
+    transform: scaleY(calc((var(--active, 0) + 1) / var(--count)));
+    transition: transform 0.6s var(--ease-bloom);
+  }
+
+  .rail ol {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .rail-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.35rem 0;
+    font-size: var(--text-small);
+    color: var(--color-ink-faint);
+    transition: color var(--dur-ui) var(--ease-soft);
+  }
+
+  .rail-item:hover {
+    color: var(--color-ink-muted);
+  }
+
+  .rail-num {
+    font-size: 0.75rem;
+    transition: color var(--dur-ui) var(--ease-soft);
+  }
+
+  .rail-title {
+    transition: transform var(--dur-ui) var(--ease-bloom);
+  }
+
+  .rail-item[data-active] {
+    color: var(--color-ink);
+  }
+
+  .rail-item[data-active] .rail-num {
+    color: var(--hue);
+  }
+
+  .rail-item[data-active] .rail-title {
+    transform: translateX(3px);
+  }
+
+  /* ---- Features ---- */
+  .features {
+    display: grid;
+  }
+
+  .feature {
+    padding: 2rem 0;
+    border-top: 1px solid var(--color-border);
+    scroll-margin-top: 30vh;
+  }
+
+  .feature:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .feature-title {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+  }
+
+  .feature-num {
+    color: var(--color-ink-faint);
+    transition: color var(--dur-ui) var(--ease-soft);
+  }
+
+  .feature-petal {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--hue);
+    transform: scale(0.5);
+    opacity: 0.4;
+    transition:
+      transform 0.5s var(--ease-spring),
+      opacity var(--dur-ui) var(--ease-soft);
+  }
+
+  .feature[data-active] .feature-petal {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  .feature[data-active] .feature-num {
+    color: var(--hue);
+  }
+
+  .pro {
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--hue);
+    background: color-mix(in oklab, var(--hue) 14%, transparent);
+  }
+
+  @media (min-width: 1024px) {
+    .feature {
+      min-height: 34vh;
+      padding: 3rem 0;
+      border-top: 0;
+    }
+
+    .feature:first-child {
+      padding-top: 0.5rem;
+    }
+
+    .feature-title {
+      font-size: 2rem;
+    }
+  }
+
+  /* Features come into focus as they cross the middle of the viewport. */
+  @supports (animation-timeline: view()) {
+    @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+      .feature {
+        animation: feature-focus linear both;
+        animation-timeline: view();
+        animation-range: cover 5% cover 95%;
+      }
+    }
+  }
+
+  @keyframes feature-focus {
+    0% { opacity: 0.2; transform: translateY(12px); }
+    35%, 60% { opacity: 1; transform: none; }
+    100% { opacity: 0.2; }
+  }
+</style>
+
+<script>
+  // Track which feature sits in the middle band of the viewport and mirror
+  // it onto the sticky index. Everything visual is CSS; this only moves an
+  // attribute and one custom property.
+  document.querySelectorAll<HTMLElement>('[data-walk]').forEach((walk) => {
+    const features = [...walk.querySelectorAll<HTMLElement>('[data-feature]')];
+    const railItems = [...walk.querySelectorAll<HTMLElement>('[data-rail-item]')];
+    if (!features.length || !('IntersectionObserver' in window)) return;
+
+    const setActive = (index: number) => {
+      walk.style.setProperty('--active', String(index));
+      features.forEach((f, i) => f.toggleAttribute('data-active', i === index));
+      railItems.forEach((r, i) => {
+        r.toggleAttribute('data-active', i === index);
+        if (i === index) r.setAttribute('aria-current', 'true');
+        else r.removeAttribute('aria-current');
+      });
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActive(features.indexOf(e.target as HTMLElement));
+        });
+      },
+      { rootMargin: '-45% 0px -45% 0px' },
+    );
+    features.forEach((f) => io.observe(f));
+  });
+</script>

@@ -1,0 +1,268 @@
+---
+import BlossomMark from '../BlossomMark.astro';
+
+interface Props {
+  products: { slug: string; name: string; hue: string }[];
+}
+
+const { products } = Astro.props;
+---
+
+<section class="hero relative overflow-hidden">
+  <!-- Soft light field: two slow-drifting washes in product hues -->
+  <div class="hero-field" aria-hidden="true">
+    <span class="wash wash-a"></span>
+    <span class="wash wash-b"></span>
+  </div>
+
+  <div class="relative mx-auto max-w-[1120px] px-6 pt-20 pb-24 sm:pt-28 sm:pb-32">
+    <div class="grid items-center gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+      <div class="max-w-2xl">
+        <div class="animate-in">
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-light text-accent text-caption font-medium mb-6">
+            <span class="live-dot" aria-hidden="true"></span>
+            Shipping new tools
+          </span>
+        </div>
+
+        <h1 class="text-display text-ink">
+          <span class="line"><span class="line-inner" style="--line: 0">Software that</span></span>
+          <span class="line"><span class="line-inner" style="--line: 1">does its job <span class="underlined">well.<svg class="underline" viewBox="0 0 120 14" preserveAspectRatio="none" aria-hidden="true"><path d="M3 9.5C22 5.5 46 3.6 70 4.6c16 .7 31 2.3 47 4.9" pathLength="1" /></svg></span></span></span>
+        </h1>
+
+        <p class="text-body text-ink-muted mt-6 max-w-lg leading-relaxed animate-in delay-3">
+          Blossom Studios builds focused developer tools and browser extensions.
+          Small, fast, no nonsense.
+        </p>
+
+        <div class="flex flex-wrap items-center gap-4 mt-8 animate-in delay-4">
+          <a
+            href="#products"
+            class="cta group inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-ink text-surface text-small font-medium hover:bg-ink/90 transition-colors duration-200"
+          >
+            See our products
+            <svg class="cta-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 8h8m-4-4 4 4-4 4" />
+            </svg>
+          </a>
+          <a
+            href="/blog/"
+            class="inline-flex items-center px-5 py-2.5 rounded-xl text-small font-medium text-ink-muted hover:text-ink hover:bg-surface-raised transition-colors duration-200"
+          >
+            Read the blog
+          </a>
+        </div>
+
+        <!-- Product index: hovering a name spotlights its petal -->
+        <div class="mt-12 flex flex-wrap items-center gap-x-5 gap-y-2 animate-in delay-5">
+          <span class="font-mono text-caption text-ink-faint">Now growing</span>
+          {products.map((p) => (
+            <a
+              href={`/products/${p.slug}/`}
+              data-hue={p.hue}
+              class="product-link inline-flex items-center gap-2 text-small font-medium text-ink-muted hover:text-ink transition-colors duration-200"
+            >
+              <span class="product-dot" style={`background: var(--color-hue-${p.hue})`} aria-hidden="true"></span>
+              {p.name}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <BlossomMark class="w-40 sm:w-56 lg:w-full lg:max-w-[400px] justify-self-center order-first lg:order-none" />
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---- Headline: each line rises out of its own mask ---- */
+  .line {
+    display: block;
+    overflow: clip;
+    /* Room for descenders and the hand-drawn underline inside the mask */
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+  }
+
+  .line-inner {
+    display: inline-block;
+  }
+
+  .underlined {
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .underline {
+    position: absolute;
+    left: -0.04em;
+    right: -0.04em;
+    bottom: -0.12em;
+    width: calc(100% + 0.08em);
+    height: 0.24em;
+    overflow: visible;
+  }
+
+  .underline path {
+    fill: none;
+    stroke: var(--color-accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .line-inner {
+      animation: line-rise 1s var(--ease-bloom) calc(80ms + var(--line) * 110ms) both;
+    }
+
+    .underline path {
+      animation: underline-draw 0.9s var(--ease-bloom) 0.95s both;
+    }
+  }
+
+  @keyframes line-rise {
+    from {
+      transform: translateY(105%);
+    }
+  }
+
+  @keyframes underline-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+
+  /* ---- Background field ---- */
+  .hero-field {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    /* Fade out before the section edge so the clipped blur never shows a seam */
+    mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  }
+
+  .wash {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.16;
+  }
+
+  .wash-a {
+    width: 46rem;
+    height: 46rem;
+    right: -12rem;
+    top: -16rem;
+    background: var(--color-hue-violet);
+  }
+
+  .wash-b {
+    width: 30rem;
+    height: 30rem;
+    right: 14rem;
+    top: 12rem;
+    background: var(--color-hue-gold);
+    opacity: 0.1;
+  }
+
+  :global([data-theme="dark"]) .wash {
+    opacity: 0.1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .wash-a {
+      animation: drift-a 36s var(--ease-soft) infinite alternate;
+    }
+
+    .wash-b {
+      animation: drift-b 44s var(--ease-soft) infinite alternate;
+    }
+  }
+
+  @keyframes drift-a {
+    to {
+      transform: translate(-6rem, 4rem) scale(1.08);
+    }
+  }
+
+  @keyframes drift-b {
+    to {
+      transform: translate(5rem, -3rem) scale(0.92);
+    }
+  }
+
+  /* ---- Details ---- */
+  .live-dot {
+    position: relative;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-accent);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .live-dot::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: inherit;
+      animation: live-ring 2.8s var(--ease-soft) infinite;
+    }
+  }
+
+  @keyframes live-ring {
+    0% {
+      transform: scale(1);
+      opacity: 0.5;
+    }
+    70%,
+    100% {
+      transform: scale(3);
+      opacity: 0;
+    }
+  }
+
+  .cta-arrow {
+    transition: transform var(--dur-ui) var(--ease-bloom);
+  }
+
+  .cta:hover .cta-arrow,
+  .cta:focus-visible .cta-arrow {
+    transform: translateX(3px);
+  }
+
+  .product-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    transition: transform var(--dur-ui) var(--ease-spring);
+  }
+
+  .product-link:hover .product-dot,
+  .product-link:focus-visible .product-dot {
+    transform: scale(1.5);
+  }
+
+  /* Spotlight: hovering a product name lifts its petal and quiets the rest */
+  .hero:has(.product-link:is(:hover, :focus-visible)) :global(.petal-body) {
+    opacity: 0.18;
+  }
+
+  .hero:has(.product-link[data-hue='gold']:is(:hover, :focus-visible)) :global(.petal[data-hue='gold']),
+  .hero:has(.product-link[data-hue='sky']:is(:hover, :focus-visible)) :global(.petal[data-hue='sky']),
+  .hero:has(.product-link[data-hue='ember']:is(:hover, :focus-visible)) :global(.petal[data-hue='ember']),
+  .hero:has(.product-link[data-hue='violet']:is(:hover, :focus-visible)) :global(.petal[data-hue='violet']) {
+    --lift: 1.08;
+  }
+
+  .hero:has(.product-link[data-hue='gold']:is(:hover, :focus-visible)) :global(.petal[data-hue='gold'] .petal-body),
+  .hero:has(.product-link[data-hue='sky']:is(:hover, :focus-visible)) :global(.petal[data-hue='sky'] .petal-body),
+  .hero:has(.product-link[data-hue='ember']:is(:hover, :focus-visible)) :global(.petal[data-hue='ember'] .petal-body),
+  .hero:has(.product-link[data-hue='violet']:is(:hover, :focus-visible)) :global(.petal[data-hue='violet'] .petal-body) {
+    opacity: 0.95;
+  }
+</style>

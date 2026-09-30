@@ -1,12 +1,16 @@
 ---
+import ProductStage from './ProductStage.astro';
+
 interface Props {
   name: string;
   tagline: string;
   slug: string;
   platforms: string[];
+  hue?: string;
+  index?: number;
 }
 
-const { name, tagline, slug, platforms } = Astro.props;
+const { name, tagline, slug, platforms, hue = 'violet', index = 0 } = Astro.props;
 
 const platformLabels: Record<string, string> = {
   chrome: 'Chrome Extension',
@@ -19,27 +23,72 @@ const platformLabels: Record<string, string> = {
 
 <a
   href={`/products/${slug}/`}
-  class="group block p-6 rounded-2xl border border-border bg-surface hover:border-border-hover hover:bg-surface-raised transition-all duration-300 hover:shadow-sm"
+  class="product-card group reveal"
+  style={`--hue: var(--color-hue-${hue}); --reveal-start: ${index * 12}%`}
 >
-  <div class="flex items-start gap-4">
-    <div class="w-12 h-12 rounded-xl bg-accent-light flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
-      <span class="text-xl font-bold text-accent">{name[0]}</span>
+  <ProductStage slug={slug} name={name} />
+
+  <div class="px-6 pt-5 pb-6">
+    <div class="flex items-center justify-between gap-3">
+      <h3 class="card-name text-heading font-semibold text-ink" style={`view-transition-name: name-${slug}`}>{name}</h3>
+      <svg class="arrow shrink-0 text-ink-faint" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 11 11 5M6 5h5v5" />
+      </svg>
     </div>
-    <div class="min-w-0">
-      <h3 class="text-heading font-semibold text-ink group-hover:text-accent transition-colors duration-200">
-        {name}
-      </h3>
-      <p class="text-small text-ink-muted mt-1 leading-relaxed">
-        {tagline}
-      </p>
-      <div class="flex flex-wrap gap-2 mt-3">
-        {platforms.map((p) => (
-          <span class="inline-flex items-center gap-1 text-caption text-ink-faint">
-            <span class="w-1 h-1 rounded-full bg-accent/40"></span>
-            {platformLabels[p] || p}
-          </span>
-        ))}
-      </div>
+    <p class="text-small text-ink-muted mt-1 leading-relaxed">
+      {tagline}
+    </p>
+    <div class="flex flex-wrap gap-3 mt-3">
+      {platforms.map((p) => (
+        <span class="inline-flex items-center gap-1.5 text-caption text-ink-faint">
+          <span class="w-1.5 h-1.5 rounded-full" style="background: var(--hue)"></span>
+          {platformLabels[p] || p}
+        </span>
+      ))}
     </div>
   </div>
 </a>
+
+<style>
+  .product-card {
+    display: block;
+    border-radius: 1.25rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    padding: 0.5rem;
+    transition:
+      transform var(--dur-ui) var(--ease-bloom),
+      border-color var(--dur-ui) var(--ease-soft),
+      box-shadow var(--dur-ui) var(--ease-soft);
+  }
+
+  .product-card:hover,
+  .product-card:focus-visible {
+    transform: translateY(-3px);
+    border-color: color-mix(in oklab, var(--hue) 35%, var(--color-border));
+    box-shadow: 0 18px 40px -24px color-mix(in oklab, var(--hue) 55%, transparent);
+  }
+
+  .product-card:focus-visible {
+    outline: 2px solid var(--hue);
+    outline-offset: 3px;
+  }
+
+  /* fit-content so the name's snapshot keeps its aspect ratio as it morphs
+   * into the product page title */
+  .card-name {
+    width: fit-content;
+  }
+
+  .arrow {
+    transition:
+      transform var(--dur-ui) var(--ease-bloom),
+      color var(--dur-ui) var(--ease-soft);
+  }
+
+  .product-card:hover .arrow,
+  .product-card:focus-visible .arrow {
+    color: var(--hue);
+    transform: translate(2px, -2px);
+  }
+</style>

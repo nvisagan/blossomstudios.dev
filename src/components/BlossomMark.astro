@@ -1,0 +1,180 @@
+---
+/**
+ * The Blossom mark at hero scale. Each petal carries a product hue; on load
+ * the petals open out from the centre, then breathe and lean toward the
+ * pointer. Petals expose `data-hue` so surrounding UI can spotlight one.
+ */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+
+// Geometry mirrors the 16px logo glyph ×10. `from` is the offset back to the
+// bud centre (80, 88) that each petal opens out of; `depth` scales parallax.
+const petals = [
+  { hue: 'violet', cx: 80, cy: 60, r: 30, from: [0, 28], depth: 1, delay: 0 },
+  { hue: 'gold', cx: 55, cy: 90, r: 25, from: [25, -2], depth: 0.6, delay: 90 },
+  { hue: 'sky', cx: 105, cy: 90, r: 25, from: [-25, -2], depth: 0.8, delay: 150 },
+  { hue: 'ember', cx: 80, cy: 115, r: 20, from: [0, -27], depth: 1.25, delay: 210 },
+];
+---
+
+<div class:list={['blossom-mark', className]} data-blossom-mark aria-hidden="true">
+  <svg viewBox="0 0 160 160" fill="none">
+    <circle class="orbit" cx="80" cy="84" r="76" pathLength="1" />
+    {petals.map((p) => (
+      <g
+        class="petal"
+        data-hue={p.hue}
+        style={`--from-x:${p.from[0]}px;--from-y:${p.from[1]}px;--depth:${p.depth};--delay:${p.delay}ms`}
+      >
+        <g class="petal-drift">
+          <circle
+            class="petal-body"
+            cx={p.cx}
+            cy={p.cy}
+            r={p.r}
+            style={`fill: var(--color-hue-${p.hue})`}
+          />
+        </g>
+      </g>
+    ))}
+    <circle class="stamen" cx="80" cy="88" r="2.5" />
+  </svg>
+</div>
+
+<style>
+  .blossom-mark {
+    --px: 0;
+    --py: 0;
+    aspect-ratio: 1;
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .orbit {
+    stroke: var(--color-border-hover);
+    stroke-width: 0.5;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  .petal,
+  .petal-drift,
+  .petal-body {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  /* Light: plain translucent layering keeps overlaps airy (multiply went
+   * muddy where violet meets sky). Dark: screen makes overlaps glow. */
+  .petal-body {
+    opacity: 0.72;
+    transition: opacity var(--dur-ui) var(--ease-soft);
+  }
+
+  :global([data-theme="dark"]) .petal-body {
+    mix-blend-mode: screen;
+    opacity: 0.78;
+  }
+
+  .petal-drift {
+    transform:
+      translate(calc(var(--px) * 7px * var(--depth)), calc(var(--py) * 7px * var(--depth)))
+      scale(var(--lift, 1));
+    transition: transform 1.4s var(--ease-bloom);
+  }
+
+  .stamen {
+    fill: var(--color-surface);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .petal {
+      animation: petal-open 1.3s var(--ease-spring) var(--delay) both;
+    }
+
+    .petal-body {
+      animation: petal-breathe 7s var(--ease-soft) calc(1.4s + var(--delay) * 4) infinite alternate;
+    }
+
+    .orbit {
+      animation: orbit-draw 1.8s var(--ease-bloom) 0.35s both;
+    }
+
+    .stamen {
+      animation: stamen-in 0.6s var(--ease-bloom) 0.7s both;
+    }
+  }
+
+  @keyframes petal-open {
+    from {
+      transform: translate(var(--from-x), var(--from-y)) scale(0.25);
+    }
+  }
+
+  @keyframes petal-breathe {
+    to {
+      transform: scale(1.035);
+    }
+  }
+
+  @keyframes orbit-draw {
+    from {
+      stroke-dashoffset: 1;
+    }
+  }
+
+  @keyframes stamen-in {
+    from {
+      transform: scale(0);
+    }
+  }
+</style>
+
+<script>
+  // Petals lean gently toward the pointer. Fine pointers only, and never
+  // when the visitor prefers reduced motion. Transforms are eased in CSS,
+  // so this only writes two custom properties per frame.
+  const marks = document.querySelectorAll<HTMLElement>('[data-blossom-mark]');
+  const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (marks.length && canHover && !reduced) {
+    let frame = 0;
+    let x = 0;
+    let y = 0;
+
+    window.addEventListener(
+      'pointermove',
+      (e) => {
+        x = e.clientX;
+        y = e.clientY;
+        if (frame) return;
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          marks.forEach((mark) => {
+            const r = mark.getBoundingClientRect();
+            const clamp = (v: number) => Math.max(-1, Math.min(1, v));
+            mark.style.setProperty('--px', clamp((x - (r.left + r.width / 2)) / r.width).toFixed(3));
+            mark.style.setProperty('--py', clamp((y - (r.top + r.height / 2)) / r.height).toFixed(3));
+          });
+        });
+      },
+      { passive: true },
+    );
+
+    document.documentElement.addEventListener('pointerleave', () => {
+      marks.forEach((mark) => {
+        mark.style.setProperty('--px', '0');
+        mark.style.setProperty('--py', '0');
+      });
+    });
+  }
+</script>
