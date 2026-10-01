@@ -9,42 +9,59 @@
   aria-label="Switch theme"
   title="Switch theme"
 >
-  <!-- Moon icon (shown in light mode) -->
-  <svg
-    class="theme-icon-moon w-4 h-4"
-    viewBox="0 0 16 16"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a.5.5 0 0 0-.7-.5A6.5 6.5 0 1 0 14 10.2a.5.5 0 0 0-.5-.7Z" />
-  </svg>
-  <!-- Sun icon (shown in dark mode) -->
-  <svg
-    class="theme-icon-sun w-4 h-4"
-    viewBox="0 0 16 16"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  >
-    <circle cx="8" cy="8" r="3" />
-    <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.5 3.5l1.4 1.4M11.1 11.1l1.4 1.4M3.5 12.5l1.4-1.4M11.1 4.9l1.4-1.4" />
+  <!-- Blossom: open by day, folds into a bud at night -->
+  <svg class="theme-bloom w-4 h-4" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <circle class="tb-petal tb-top" cx="8" cy="5.5" r="3" />
+    <circle class="tb-petal tb-left" cx="5" cy="9" r="2.6" />
+    <circle class="tb-petal tb-right" cx="11" cy="9" r="2.6" />
+    <circle class="tb-petal tb-bottom" cx="8" cy="11.8" r="2.1" />
+    <circle class="tb-star tb-star-a" cx="13.6" cy="2.6" r="0.7" />
+    <circle class="tb-star tb-star-b" cx="11.4" cy="1.4" r="0.45" />
   </svg>
 </button>
 
 <style>
-  /* Selectors intentionally target :root (outside component scope).
-   * Astro scopes the descendant .theme-icon-* classes; the :root
-   * portion stays unscoped, which is what we want. */
-  /* Reveal the right icon based on current theme */
-  :root[data-theme="dark"] .theme-icon-moon { display: none; }
-  :root[data-theme="dark"] .theme-icon-sun { display: inline-block; }
-  :root:not([data-theme="dark"]) .theme-icon-sun { display: none; }
-  :root:not([data-theme="dark"]) .theme-icon-moon { display: inline-block; }
+  /* Selectors target :root (outside component scope) so the icon follows
+   * data-theme; Astro scopes only the descendant classes. */
+  .tb-petal,
+  .tb-star {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+      transform 0.55s var(--ease-spring),
+      opacity var(--dur-ui) var(--ease-soft),
+      fill-opacity var(--dur-ui) var(--ease-soft);
+  }
+
+  .tb-petal {
+    stroke: currentColor;
+    stroke-width: 1.2;
+    fill: currentColor;
+    fill-opacity: 0;
+  }
+
+  .tb-star {
+    fill: currentColor;
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  /* Night: the petals fold onto one centre (8, 8.8) and fill in, so the
+   * closed blossom reads as a small moon beside the stars. */
+  :root[data-theme="dark"] .tb-petal { fill-opacity: 1; }
+  :root[data-theme="dark"] .tb-top { transform: translate(0, 3.3px) scale(1.13); }
+  :root[data-theme="dark"] .tb-left { transform: translate(3px, -0.2px) scale(1.31); }
+  :root[data-theme="dark"] .tb-right { transform: translate(-3px, -0.2px) scale(1.31); }
+  :root[data-theme="dark"] .tb-bottom { transform: translate(0, -3px) scale(1.62); }
+  :root[data-theme="dark"] .tb-star { opacity: 1; transform: none; }
+  :root[data-theme="dark"] .tb-star-b { transition-delay: 80ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tb-petal,
+    .tb-star {
+      transition: none;
+    }
+  }
 </style>
 
 <script>

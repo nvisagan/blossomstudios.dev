@@ -1,0 +1,113 @@
+---
+import '../styles/labs.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Full-bleed pages (the experiment viewer) skip the footer */
+  bare?: boolean;
+}
+
+const {
+  title,
+  description = 'One-shot experiments, sketches, and small ideas from Blossom Studios.',
+  bare = false,
+} = Astro.props;
+
+const fullTitle = title ? `${title} · Blossom Labs` : 'Blossom Labs';
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/og.png', Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <script is:inline>
+      // Labs follows the system theme (it has no toggle of its own).
+      (function () {
+        var mq = window.matchMedia('(prefers-color-scheme: dark)');
+        var apply = function () {
+          document.documentElement.setAttribute('data-theme', mq.matches ? 'dark' : 'light');
+        };
+        apply();
+        mq.addEventListener('change', apply);
+      })();
+    </script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:site_name" content="Blossom Labs" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <header class="site-header sticky top-0 z-50 backdrop-blur-lg bg-surface/80 border-b border-border/50">
+      <nav class="mx-auto max-w-[1120px] px-6 h-14 flex items-center justify-between">
+        <a href="/" class="brand flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-lg bg-accent flex items-center justify-center">
+            <svg class="glyph" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle class="g-top" cx="8" cy="6" r="3" fill="white" opacity="0.9" />
+              <circle class="g-left" cx="5.5" cy="9" r="2.5" fill="white" opacity="0.7" />
+              <circle class="g-right" cx="10.5" cy="9" r="2.5" fill="white" opacity="0.7" />
+              <circle class="g-bottom" cx="8" cy="11.5" r="2" fill="white" opacity="0.5" />
+            </svg>
+          </span>
+          <span class="font-semibold text-[0.9375rem] tracking-tight text-ink">
+            Blossom <span class="text-ink-faint font-medium">Labs</span>
+          </span>
+        </a>
+        <a
+          href="https://blossomstudios.dev"
+          class="text-small font-medium text-ink-muted hover:text-ink transition-colors duration-200"
+        >
+          blossomstudios.dev ↗
+        </a>
+      </nav>
+    </header>
+
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    {!bare && (
+      <footer class="border-t border-border mt-24">
+        <div class="mx-auto max-w-[1120px] px-6 py-10 flex flex-wrap items-center justify-between gap-4 text-small text-ink-faint">
+          <span>&copy; {new Date().getFullYear()} Blossom Studios LLC</span>
+          <span class="font-mono text-caption">Things in here may break. That's the point.</span>
+        </div>
+      </footer>
+    )}
+  </body>
+</html>
+
+<style>
+  .site-header {
+    view-transition-name: site-header;
+  }
+
+  .glyph circle {
+    transition: transform 0.5s var(--ease-spring);
+  }
+
+  .brand:hover .g-top { transform: translate(0, -0.8px); }
+  .brand:hover .g-left { transform: translate(-0.7px, 0.3px); }
+  .brand:hover .g-right { transform: translate(0.7px, 0.3px); }
+  .brand:hover .g-bottom { transform: translate(0, 0.8px); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glyph circle {
+      transition: none;
+    }
+  }
+</style>

@@ -13,11 +13,11 @@ const links = [
   <nav class="mx-auto max-w-[1120px] px-6 h-16 flex items-center justify-between">
     <a href="/" class="flex items-center gap-2.5 group">
       <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <circle cx="8" cy="6" r="3" fill="white" opacity="0.9" />
-          <circle cx="5.5" cy="9" r="2.5" fill="white" opacity="0.7" />
-          <circle cx="10.5" cy="9" r="2.5" fill="white" opacity="0.7" />
-          <circle cx="8" cy="11.5" r="2" fill="white" opacity="0.5" />
+        <svg class="logo-glyph" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <circle class="lp-top" cx="8" cy="6" r="3" fill="white" opacity="0.9" />
+          <circle class="lp-left" cx="5.5" cy="9" r="2.5" fill="white" opacity="0.7" />
+          <circle class="lp-right" cx="10.5" cy="9" r="2.5" fill="white" opacity="0.7" />
+          <circle class="lp-bottom" cx="8" cy="11.5" r="2" fill="white" opacity="0.5" />
         </svg>
       </div>
       <span class="font-semibold text-[0.9375rem] tracking-tight text-ink">Blossom Studios</span>
@@ -68,3 +68,25 @@ const links = [
     </details>
   </nav>
 </header>
+
+<style>
+  /* The mark's petals part a touch on hover — the homepage bloom in miniature. */
+  .logo-glyph circle {
+    transition: transform 0.5s var(--ease-spring);
+  }
+
+  a:hover .lp-top,
+  a:focus-visible .lp-top { transform: translate(0, -0.8px); }
+  a:hover .lp-left,
+  a:focus-visible .lp-left { transform: translate(-0.7px, 0.3px); }
+  a:hover .lp-right,
+  a:focus-visible .lp-right { transform: translate(0.7px, 0.3px); }
+  a:hover .lp-bottom,
+  a:focus-visible .lp-bottom { transform: translate(0, 0.8px); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logo-glyph circle {
+      transition: none;
+    }
+  }
+</style>

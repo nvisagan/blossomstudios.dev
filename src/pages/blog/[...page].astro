@@ -21,19 +21,22 @@ const { page } = Astro.props;
 >
   <div class="mx-auto max-w-[1120px] px-6 pt-16 pb-24">
     <section class="pt-12 pb-8">
+      <span class="block font-mono text-caption text-ink-faint mb-3 animate-in">Journal</span>
       <h1 class="text-display text-ink">Blog</h1>
       <p class="text-body text-ink-muted mt-3">Updates, changelogs, and articles.</p>
     </section>
 
     <div class="divide-y divide-border">
-      {page.data.map((post: any) => (
-        <BlogPostCard
-          title={post.data.title}
-          description={post.data.description}
-          pubDate={post.data.pubDate}
-          tags={post.data.tags}
-          slug={post.id}
-        />
+      {page.data.map((post: any, i: number) => (
+        <div class="reveal" style={`--reveal-start: ${Math.min(i, 5) * 6}%`}>
+          <BlogPostCard
+            title={post.data.title}
+            description={post.data.description}
+            pubDate={post.data.pubDate}
+            tags={post.data.tags}
+            slug={post.id}
+          />
+        </div>
       ))}
     </div>
 
