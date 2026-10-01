@@ -1,0 +1,47 @@
+---
+import Labs from '../layouts/Labs.astro';
+import ExperimentCard from '../components/ExperimentCard.astro';
+import { getExperiments } from '../lib/experiments';
+
+const experiments = await getExperiments();
+const count = String(experiments.length).padStart(2, '0');
+---
+
+<Labs>
+  <section class="relative overflow-hidden">
+    <div class="wash" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-[1120px] px-6 pt-20 pb-14 sm:pt-28">
+      <span class="block font-mono text-caption text-ink-faint mb-4 rise">Blossom Studios / Labs</span>
+      <h1 class="text-display text-ink rise" style="--i: 1">Labs</h1>
+      <p class="text-body text-ink-muted mt-4 max-w-lg leading-relaxed rise" style="--i: 2">
+        One-shot experiments, sketches, and small ideas. Some grow into products;
+        most are here because they were fun to make.
+      </p>
+      <span class="inline-block mt-6 font-mono text-caption text-ink-faint rise" style="--i: 3">
+        {count} {experiments.length === 1 ? 'experiment' : 'experiments'}
+      </span>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-[1120px] px-6">
+    {experiments.length > 0 ? (
+      <div class="grid gap-5 md:grid-cols-2">
+        {experiments.map((exp, i) => <ExperimentCard exp={exp} featured={i === 0} />)}
+      </div>
+    ) : (
+      <p class="text-body text-ink-muted">Nothing growing yet.</p>
+    )}
+  </section>
+</Labs>
+
+<style>
+  .wash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(50% 80% at 90% 0%, color-mix(in oklab, var(--color-hue-violet) 14%, transparent), transparent 70%),
+      radial-gradient(35% 60% at 65% 30%, color-mix(in oklab, var(--color-hue-sky) 9%, transparent), transparent 70%);
+    mask-image: linear-gradient(to bottom, #000 40%, transparent);
+  }
+</style>

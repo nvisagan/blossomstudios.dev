@@ -1,7 +1,7 @@
 # Motion Redesign — "Things that open"
 
 **Date:** 2026-09-30
-**Status:** Homepage, product pages and brand details implemented; Labs next
+**Status:** Homepage, product pages, brand details and Labs implemented
 
 ## Direction
 
@@ -93,32 +93,29 @@ content in place. `--reveal-start` staggers siblings.
 - Products index hero to match the homepage.
 - Per-feature demo states in the walkthrough, if it earns it.
 
-## Labs — `labs.blossomstudios.dev`
+## Labs — `labs.blossomstudios.dev` (implemented)
 
-Goal: a place to drop one-shot experiments/artifacts (often a single
-self-contained HTML file) without touching the main site.
+A separate static Astro app in `labs/`, deployed as its own Vercel project
+(Root Directory `labs`) on the subdomain. See `labs/README.md` for adding an
+experiment and the one-time Vercel setup.
 
-**Recommendation: same repo, separate app, separate Vercel project.**
-
-```
-/                     ← main site (unchanged)
-/labs/                ← its own small Astro app
-  src/content/experiments/<slug>.md   (title, date, hue, thumbnail, summary)
-  public/x/<slug>/index.html          (the one-shot artifact, as-is)
-  src/pages/index.astro               (grid of experiments)
-```
-
-- Vercel project #2 with Root Directory `labs/`, domain `labs.blossomstudios.dev`.
-  Deploys independently, so a heavy or broken experiment can never slow or
-  break the studio site, and experiments can use whatever JS they like.
-- The Labs shell imports `../src/styles/tokens.css` (and later `BlossomMark`)
-  so it looks like family. When sharing grows, extract a `packages/brand`
-  workspace; `tokens.css` is already framework-agnostic enough to move as-is.
-- Adding an experiment = drop the HTML in `public/x/<slug>/` + a 5-line
-  metadata file. Artifacts render in their own page (or an iframe on the
-  detail page), fully isolated from the shell's CSS.
-- Main site gets a "Labs" nav link pointing at the subdomain.
-
-Alternative considered: serving `/labs/*` from the main app with a host-based
-rewrite. Fewer moving parts, but experiments ship inside the main deploy and
-share its bundle/CSP, which works against "experimental and disposable".
+- **Adding an experiment:** drop self-contained HTML in
+  `labs/public/x/<slug>/index.html` and a short Markdown file in
+  `labs/src/content/experiments/<slug>.md` (title, summary, date, hue,
+  status, tags, optional thumbnail/notes). `url:` links out to an experiment
+  hosted elsewhere. The build fails with a clear message if the HTML is
+  missing.
+- **Index:** newest first, numbered chronologically ("No. 001"); the newest
+  card is featured full-width. **Viewer** (`/<slug>/`): the experiment in a
+  sandboxed iframe (opaque origin by default; `sandbox: same-origin` opts in
+  for trusted code needing storage), "Open full screen" for the raw file,
+  notes below. Card thumbnails morph into the viewer frame (cross-document
+  view transitions), as on the main site.
+- **Isolation:** experiments ship in their own deploy, so nothing in Labs can
+  slow or break blossomstudios.dev. The main site excludes `labs/` from its
+  TypeScript and Tailwind scanning.
+- **Shared brand:** Labs imports `../src/styles/tokens.css` directly, so it
+  always matches the studio site; dependencies are pinned to the main site's
+  versions.
+- **Seed experiment:** No. 001 Petal Field — click or drag to plant blossoms
+  that open on a spring and breathe; one HTML file, no libraries.

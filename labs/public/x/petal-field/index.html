@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Petal Field · Blossom Labs</title>
+<style>
+  :root {
+    --surface: #fafaf9;
+    --ink: #0f0f0f;
+    --ink-faint: #a3a3a3;
+    --border: #e8e6e3;
+    --violet: #7c5cfc;
+    --gold: #d99a1e;
+    --sky: #3a82e0;
+    --ember: #e5673a;
+    --blend: multiply;
+    --petal-opacity: 0.72;
+    --ease-spring: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 20.4%, 1.051 24.3%, 1.055 26.1%, 1.052 28.3%, 1.024 35%, 1.005 42.5%, 0.996 51.1%, 1);
+    --ease-soft: cubic-bezier(0.33, 0, 0.2, 1);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #13110f;
+      --ink: #f5f3ef;
+      --ink-faint: #8d867f;
+      --border: #2a2724;
+      --violet: #9d83ff;
+      --gold: #eab54c;
+      --sky: #6ea6f2;
+      --ember: #f08a5f;
+      --blend: screen;
+      --petal-opacity: 0.7;
+    }
+  }
+
+  * { box-sizing: border-box; margin: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+  }
+
+  #field {
+    position: fixed;
+    inset: 0;
+    cursor: crosshair;
+    background-image: radial-gradient(circle at 1px 1px, var(--border) 1px, transparent 0);
+    background-size: 28px 28px;
+  }
+
+  .blossom {
+    position: absolute;
+    pointer-events: none;
+    translate: -50% -50%;
+    transition: opacity 0.9s var(--ease-soft), scale 0.9s var(--ease-soft);
+  }
+
+  .blossom.wilting {
+    opacity: 0;
+    scale: 0.6;
+  }
+
+  .blossom svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .blossom circle {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .petal {
+    mix-blend-mode: var(--blend);
+    opacity: var(--petal-opacity);
+  }
+
+  .stamen { fill: var(--surface); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .petal {
+      animation:
+        open 1.2s var(--ease-spring) var(--d) both,
+        breathe 6s var(--ease-soft) calc(1.3s + var(--d) * 3) infinite alternate;
+    }
+
+    .stamen { animation: pop 0.5s var(--ease-spring) 0.45s both; }
+  }
+
+  @keyframes open {
+    from { transform: translate(var(--fx), var(--fy)) scale(0.2); }
+  }
+
+  @keyframes breathe {
+    to { transform: scale(1.04); }
+  }
+
+  @keyframes pop {
+    from { transform: scale(0); }
+  }
+
+  .hud {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    font: 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--ink-faint);
+    pointer-events: none;
+  }
+
+  .hud button {
+    pointer-events: auto;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 7px 12px;
+    cursor: pointer;
+  }
+
+  .hud button:hover { color: var(--ink); }
+
+  .hint {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    font: 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--ink-faint);
+    transition: opacity 0.6s var(--ease-soft);
+  }
+
+  .hint.gone { opacity: 0; }
+</style>
+</head>
+<body>
+  <div id="field" aria-label="Petal field: click or drag to plant blossoms" role="application"></div>
+  <div class="hint" id="hint">Click or drag anywhere to plant</div>
+  <div class="hud">
+    <span id="count">00 planted</span>
+    <button type="button" id="clear">Clear field (C)</button>
+  </div>
+
+<script>
+  (function () {
+    var field = document.getElementById('field');
+    var hint = document.getElementById('hint');
+    var countEl = document.getElementById('count');
+    var MAX = 90;
+    var SPACING = 64; // px between blossoms when dragging
+    var hues = ['violet', 'gold', 'sky', 'ember'];
+    // Petal geometry mirrors the Blossom mark; `f` is the offset back to the
+    // bud centre (80, 88) that each petal opens out of.
+    var petals = [
+      { cx: 80, cy: 60, r: 30, f: [0, 28] },
+      { cx: 55, cy: 90, r: 25, f: [25, -2] },
+      { cx: 105, cy: 90, r: 25, f: [-25, -2] },
+      { cx: 80, cy: 115, r: 20, f: [0, -27] }
+    ];
+    var planted = 0;
+    var live = [];
+    var last = null;
+    var drawing = false;
+
+    function shuffle(a) {
+      a = a.slice();
+      for (var i = a.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      return a;
+    }
+
+    function plant(x, y) {
+      var size = 70 + Math.random() * 90;
+      var order = shuffle(hues);
+      var el = document.createElement('div');
+      el.className = 'blossom';
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.width = el.style.height = size + 'px';
+      el.style.rotate = Math.round(Math.random() * 360) + 'deg';
+
+      var svg = '<svg viewBox="0 0 160 160">';
+      petals.forEach(function (p, i) {
+        svg += '<circle class="petal" cx="' + p.cx + '" cy="' + p.cy + '" r="' + p.r + '"' +
+          ' style="fill: var(--' + order[i] + '); --fx:' + p.f[0] + 'px; --fy:' + p.f[1] + 'px; --d:' + (i * 70) + 'ms"/>';
+      });
+      svg += '<circle class="stamen" cx="80" cy="88" r="2.5"/></svg>';
+      el.innerHTML = svg;
+      field.appendChild(el);
+      live.push(el);
+
+      if (live.length > MAX) wilt(live.shift());
+      planted++;
+      countEl.textContent = String(planted).padStart(2, '0') + ' planted';
+      hint.classList.add('gone');
+    }
+
+    function wilt(el) {
+      el.classList.add('wilting');
+      setTimeout(function () { el.remove(); }, 950);
+    }
+
+    function clearField() {
+      live.forEach(function (el, i) { setTimeout(function () { wilt(el); }, i * 12); });
+      live = [];
+    }
+
+    field.addEventListener('pointerdown', function (e) {
+      drawing = true;
+      last = { x: e.clientX, y: e.clientY };
+      field.setPointerCapture(e.pointerId);
+      plant(e.clientX, e.clientY);
+    });
+
+    field.addEventListener('pointermove', function (e) {
+      if (!drawing) return;
+      var dx = e.clientX - last.x;
+      var dy = e.clientY - last.y;
+      if (dx * dx + dy * dy >= SPACING * SPACING) {
+        last = { x: e.clientX, y: e.clientY };
+        plant(e.clientX, e.clientY);
+      }
+    });
+
+    ['pointerup', 'pointercancel'].forEach(function (t) {
+      field.addEventListener(t, function () { drawing = false; });
+    });
+
+    document.getElementById('clear').addEventListener('click', clearField);
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'c' || e.key === 'C') clearField();
+    });
+
+    // A few to start, so the field is never empty on arrival.
+    var w = window.innerWidth, h = window.innerHeight;
+    [[0.32, 0.42], [0.62, 0.36], [0.5, 0.64]].forEach(function (p, i) {
+      setTimeout(function () {
+        plant(w * p[0], h * p[1]);
+        hint.classList.remove('gone');
+      }, 300 + i * 260);
+    });
+  })();
+</script>
+</body>
+</html>

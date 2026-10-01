@@ -1,0 +1,143 @@
+---
+import { formatDate, statusLabel, type Experiment } from '../lib/experiments';
+
+interface Props {
+  exp: Experiment;
+  /** The newest experiment gets the wide, horizontal treatment */
+  featured?: boolean;
+}
+
+const { exp, featured = false } = Astro.props;
+const { title, summary, date, hue, status, thumbnail, tags } = exp.data;
+---
+
+<a
+  href={`/${exp.id}/`}
+  class:list={['card group reveal', { featured }]}
+  style={`--hue: var(--color-hue-${hue})`}
+>
+  <div class="thumb" style={`view-transition-name: exp-${exp.id}`}>
+    {thumbnail ? (
+      <img src={thumbnail} alt="" loading={featured ? 'eager' : 'lazy'} decoding="async" />
+    ) : (
+      <span class="thumb-fallback" aria-hidden="true">{exp.label}</span>
+    )}
+  </div>
+
+  <div class="body">
+    <div class="flex items-center gap-2 font-mono text-caption text-ink-faint">
+      <span class="dot" aria-hidden="true"></span>
+      <span>No. {exp.label}</span>
+      <span>·</span>
+      <span>{statusLabel(status)}</span>
+    </div>
+    <h2 class="title">{title}</h2>
+    <p class="text-small text-ink-muted leading-relaxed mt-2">{summary}</p>
+    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-4 text-caption text-ink-faint">
+      <time datetime={date.toISOString()}>{formatDate(date)}</time>
+      {tags.map((t) => <span>#{t}</span>)}
+      {exp.external && <span>↗ external</span>}
+    </div>
+  </div>
+</a>
+
+<style>
+  .card {
+    display: block;
+    border-radius: 1.25rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    padding: 0.5rem;
+    transition:
+      transform var(--dur-ui) var(--ease-bloom),
+      border-color var(--dur-ui) var(--ease-soft),
+      box-shadow var(--dur-ui) var(--ease-soft);
+  }
+
+  .card:hover,
+  .card:focus-visible {
+    transform: translateY(-3px);
+    border-color: color-mix(in oklab, var(--hue) 35%, var(--color-border));
+    box-shadow: 0 18px 40px -24px color-mix(in oklab, var(--hue) 55%, transparent);
+  }
+
+  .card:focus-visible {
+    outline: 2px solid var(--hue);
+    outline-offset: 3px;
+  }
+
+  .thumb {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 0.875rem;
+    container-type: inline-size;
+    background:
+      radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--hue) 16%, transparent), transparent 70%),
+      var(--color-surface-raised);
+  }
+
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease-bloom);
+  }
+
+  .card:hover .thumb img {
+    transform: scale(1.025);
+  }
+
+  .thumb-fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-mono);
+    font-size: 16cqw;
+    letter-spacing: -0.04em;
+    color: color-mix(in oklab, var(--hue) 45%, transparent);
+  }
+
+  .body {
+    padding: 1.25rem 1rem 1rem;
+  }
+
+  .title {
+    margin-top: 0.5rem;
+    font-size: 1.375rem;
+    line-height: 1.2;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--hue);
+    transition: transform var(--dur-ui) var(--ease-spring);
+  }
+
+  .card:hover .dot {
+    transform: scale(1.5);
+  }
+
+  @media (min-width: 768px) {
+    .featured {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+      align-items: center;
+    }
+
+    .featured .body {
+      padding: 1.5rem 2rem;
+    }
+
+    .featured .title {
+      font-size: 2rem;
+    }
+  }
+</style>

@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@import "@fontsource-variable/plus-jakarta-sans";
+
+/* Brand tokens are shared with the main site rather than copied, so Labs
+ * always matches blossomstudios.dev. (On Vercel this needs "Include files
+ * outside the root directory" — on by default.) */
+@import "../../../src/styles/tokens.css";
+
+/* Experiments' own files are plain HTML; don't scan them for utilities. */
+@source not "../../public/x";
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background-color: var(--color-accent-light);
+  color: var(--color-ink);
+}
+
+/* Cross-document view transitions: a card's thumbnail morphs into the
+ * experiment frame. Unsupported browsers navigate normally. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.6s;
+  animation-timing-function: var(--ease-bloom);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+}
+
+/* Entrances */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rise {
+    animation: rise 0.7s var(--ease-bloom) both;
+    animation-delay: calc(var(--i, 0) * 80ms);
+  }
+
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+/* Notes written in Markdown under an experiment */
+.notes {
+  max-width: 64ch;
+  line-height: 1.75;
+  color: var(--color-ink-muted);
+}
+
+.notes h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
+  margin: 2rem 0 0.75rem;
+}
+
+.notes p,
+.notes ul,
+.notes ol {
+  margin-bottom: 1.1rem;
+}
+
+.notes ul,
+.notes ol {
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.notes a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.notes code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--color-surface-raised);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}

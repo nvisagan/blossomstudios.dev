@@ -3,6 +3,9 @@
 
 @import "./tokens.css";
 
+/* Labs is its own app with its own build; keep it out of this one. */
+@source not "../../labs";
+
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

@@ -1,0 +1,138 @@
+---
+import Labs from '../layouts/Labs.astro';
+import { render } from 'astro:content';
+import { formatDate, getExperiments, statusLabel, type Experiment } from '../lib/experiments';
+
+export async function getStaticPaths() {
+  const experiments = await getExperiments();
+  return experiments.map((exp) => ({ params: { slug: exp.id }, props: { exp } }));
+}
+
+const { exp } = Astro.props as { exp: Experiment };
+const { title, summary, date, hue, status, tags, sandbox } = exp.data;
+const { Content } = await render(exp);
+const hasNotes = Boolean(exp.body?.trim());
+
+// Strict sandbox gives the experiment an opaque origin: scripts run, but it
+// can't read cookies or storage on labs.blossomstudios.dev.
+const sandboxFlags = [
+  'allow-scripts',
+  'allow-forms',
+  'allow-popups',
+  'allow-modals',
+  'allow-pointer-lock',
+  'allow-downloads',
+  ...(sandbox === 'same-origin' ? ['allow-same-origin'] : []),
+].join(' ');
+---
+
+<Labs title={title} description={summary}>
+  <div style={`--hue: var(--color-hue-${hue})`}>
+    <section class="mx-auto max-w-[1120px] px-6 pt-8 pb-6">
+      <a href="/" class="back inline-flex items-center gap-1.5 text-small font-medium text-ink-muted hover:text-ink transition-colors duration-200">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 8H4m4 4-4-4 4-4" />
+        </svg>
+        All experiments
+      </a>
+
+      <div class="mt-8 flex flex-wrap items-end justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-2 font-mono text-caption text-ink-faint">
+            <span class="dot" aria-hidden="true"></span>
+            <span>No. {exp.label}</span>
+            <span>·</span>
+            <span>{statusLabel(status)}</span>
+            <span>·</span>
+            <time datetime={date.toISOString()}>{formatDate(date)}</time>
+          </div>
+          <h1 class="text-title text-ink mt-3">{title}</h1>
+          <p class="text-body text-ink-muted mt-2 max-w-xl">{summary}</p>
+        </div>
+        <a
+          href={exp.src}
+          target={exp.external ? '_blank' : undefined}
+          rel={exp.external ? 'noopener noreferrer' : undefined}
+          class="open inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border text-small font-medium text-ink-muted hover:text-ink hover:border-border-hover transition-colors duration-200"
+        >
+          {exp.external ? 'Open experiment' : 'Open full screen'}
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 11 11 5M6 5h5v5" />
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-[1280px] px-3 sm:px-6">
+      <div class="frame" style={`view-transition-name: exp-${exp.id}`}>
+        {exp.external ? (
+          <a href={exp.src} target="_blank" rel="noopener noreferrer" class="external">
+            <span class="font-mono text-caption text-ink-faint">Hosted elsewhere</span>
+            <span class="text-heading text-ink mt-2">Open {title} ↗</span>
+          </a>
+        ) : (
+          <iframe src={exp.src} title={title} sandbox={sandboxFlags} allow="fullscreen; clipboard-write"></iframe>
+        )}
+      </div>
+    </section>
+
+    {(hasNotes || tags.length > 0) && (
+      <section class="mx-auto max-w-[1120px] px-6 pt-14">
+        {tags.length > 0 && (
+          <div class="flex flex-wrap gap-3 font-mono text-caption text-ink-faint mb-6">
+            {tags.map((t) => <span>#{t}</span>)}
+          </div>
+        )}
+        {hasNotes && (
+          <div class="notes">
+            <Content />
+          </div>
+        )}
+      </section>
+    )}
+  </div>
+</Labs>
+
+<style>
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--hue);
+  }
+
+  .frame {
+    position: relative;
+    height: min(78svh, 860px);
+    min-height: 420px;
+    overflow: hidden;
+    border-radius: 1.25rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-raised);
+    box-shadow: 0 30px 70px -45px color-mix(in oklab, var(--hue) 70%, transparent);
+  }
+
+  iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .external {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    background: radial-gradient(60% 70% at 50% 30%, color-mix(in oklab, var(--hue) 14%, transparent), transparent 70%);
+  }
+
+  .back svg {
+    transition: transform var(--dur-ui) var(--ease-bloom);
+  }
+
+  .back:hover svg {
+    transform: translateX(-3px);
+  }
+</style>
